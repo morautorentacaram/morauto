@@ -14,6 +14,7 @@ export async function getReservations() {
           include: { category: true }
         },
         contract: true,
+        payments: true,
       },
       orderBy: { createdAt: 'desc' }
     });

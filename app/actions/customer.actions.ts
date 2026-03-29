@@ -78,6 +78,62 @@ export async function createCustomer(formData: FormData) {
   }
 }
 
+export async function blockCustomer(id: string, reason: string) {
+  try {
+    await db.customer.update({
+      where: { id },
+      data: { blocked: true, blockedReason: reason },
+    })
+    revalidatePath("/admin/clientes")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao bloquear cliente." }
+  }
+}
+
+export async function unblockCustomer(id: string) {
+  try {
+    await db.customer.update({
+      where: { id },
+      data: { blocked: false, blockedReason: null },
+    })
+    revalidatePath("/admin/clientes")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao desbloquear cliente." }
+  }
+}
+
+export async function updateCustomerScore(id: string, score: number) {
+  try {
+    await db.customer.update({
+      where: { id },
+      data: { score: Math.max(0, Math.min(100, score)) },
+    })
+    revalidatePath("/admin/clientes")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao atualizar score." }
+  }
+}
+
+export async function getCustomerById(id: string) {
+  return db.customer.findUnique({
+    where: { id },
+    include: {
+      user: true,
+      reservations: {
+        include: { vehicle: { include: { category: true } }, payments: true },
+        orderBy: { createdAt: "desc" },
+      },
+      contracts: { orderBy: { createdAt: "desc" }, take: 5 },
+    },
+  })
+}
+
 export async function deleteCustomer(id: string) {
   try {
     const resCount = await db.reservation.count({ where: { customerId: id } });

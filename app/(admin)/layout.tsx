@@ -59,6 +59,7 @@ export default async function AdminLayout({
             <>
               <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest px-3 py-2 mt-4">Empresa</p>
               <NavItem href="/admin/filiais" icon={<Building2 size={16} />} label="Filiais" />
+              <NavItem href="/admin/config" icon={<Settings size={16} />} label="Configurações" />
             </>
           )}
         </nav>
