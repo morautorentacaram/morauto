@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-id"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+  CUSTOMER
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  UNAVAILABLE
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(CUSTOMER)
+  
+  customer      Customer?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Customer {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  
+  type            String   // PF or PJ
+  document        String   @unique // CPF or CNPJ
+  cnh             String?  @unique
+  cnhExpiration   DateTime?
+  phone           String?
+  address         String?
+  
+  reservations    Reservation[]
+  contracts       RentalContract[]
+}
+
+model Vehicle {
+  id              String        @id @default(cuid())
+  model           String
+  brand           String
+  version         String?
+  year            Int
+  plate           String        @unique
+  renavam         String        @unique
+  chassi          String        @unique
+  color           String
+  km              Int           @default(0)
+  fuelType        String
+  transmission    String        // MANUAL/AUTO
+  status          VehicleStatus @default(AVAILABLE)
+  
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id])
+  
+  reservations    Reservation[]
+  maintenances    Maintenance[]
+  fines           Fine[]
+  inspections     Inspection[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Category {
+  id           String    @id @default(cuid())
+  name         String    @unique // Econômico, SUV, Luxo
+  dailyRate    Decimal   @db.Decimal(10, 2)
+  weeklyRate   Decimal?  @db.Decimal(10, 2)
+  monthlyRate  Decimal?  @db.Decimal(10, 2)
+  depositValue Decimal   @db.Decimal(10, 2)
+  
+  vehicles     Vehicle[]
+}
+
+model Reservation {
+  id              String            @id @default(cuid())
+  startDate       DateTime
+  endDate         DateTime
+  status          ReservationStatus @default(PENDING)
+  totalValue      Decimal           @db.Decimal(10, 2)
+  
+  customerId      String
+  customer        Customer          @relation(fields: [customerId], references: [id])
+  
+  vehicleId       String
+  vehicle         Vehicle           @relation(fields: [vehicleId], references: [id])
+  
+  contract        RentalContract?
+  payments        Payment[]
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model RentalContract {
+  id              String      @id @default(cuid())
+  number          String      @unique // Format: MOR-YYYY-XXXX
+  terms           String      @db.Text
+  digitalSignature String?    @db.Text // Base64 or URL to signature image
+  signedAt        DateTime?
+  
+  reservationId   String      @unique
+  reservation     Reservation @relation(fields: [reservationId], references: [id])
+  
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  
+  inspections     Inspection[]
+  
+  createdAt       DateTime    @default(now())
+}
+
+model Inspection {
+  id              String    @id @default(cuid())
+  type            String    // DEPARTURE (Retirada) or RETURN (Devolução)
+  km              Int
+  fuelLevel       Int       // Percentage
+  observations    String?   @db.Text
+  photos          String[]  // Array of URLs
+  
+  vehicleId       String
+  vehicle         Vehicle   @relation(fields: [vehicleId], references: [id])
+  
+  contractId      String
+  contract        RentalContract @relation(fields: [contractId], references: [id])
+  
+  inspectorName   String
+  createdAt       DateTime  @default(now())
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  amount          Decimal       @db.Decimal(10, 2)
+  method          String        // PIX, CREDIT_CARD
+  status          PaymentStatus @default(PENDING)
+  txid            String?       @unique // BB Pix Transaction ID
+  qrCode          String?       @db.Text
+  
+  reservationId   String
+  reservation     Reservation   @relation(fields: [reservationId], references: [id])
+  
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+}
+
+model Fine {
+  id              String    @id @default(cuid())
+  amount          Decimal   @db.Decimal(10, 2)
+  date            DateTime
+  infractionCode  String
+  description     String
+  status          String    // PENDING, PAID, APPEAL
+  
+  vehicleId       String
+  vehicle         Vehicle   @relation(fields: [vehicleId], references: [id])
+}
+
+model Maintenance {
+  id              String    @id @default(cuid())
+  type            String    // PREVENTIVE, CORRECTIVE
+  date            DateTime
+  kmAtMaintenance Int
+  description     String
+  cost            Decimal   @db.Decimal(10, 2)
+  provider        String?
+  
+  vehicleId       String
+  vehicle         Vehicle   @relation(fields: [vehicleId], references: [id])
+}
