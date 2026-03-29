@@ -5,6 +5,7 @@ import { db } from "./lib/db"
 import bcrypt from "bcryptjs"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // @ts-ignore - Prisma Adapter mismatch with next-auth beta
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   pages: {

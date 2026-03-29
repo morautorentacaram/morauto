@@ -18,7 +18,7 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-            <button className="accent-btn flex items-center gap-2 text-lg">
+            <button className="px-6 py-3 rounded-full font-semibold transition-all duration-300 bg-[#d4a017] text-black hover:bg-[#b8860b] hover:shadow-lg hover:shadow-[#d4a017]/50 flex items-center gap-2 text-lg">
               Reservar Agora <ChevronRight size={20} />
             </button>
             <a href="/frota" className="px-8 py-3 rounded-full font-semibold border border-white/20 bg-white/5 backdrop-blur-sm transition-all hover:bg-white/10 text-lg">
@@ -28,7 +28,7 @@ export default function Home() {
         </div>
 
         {/* Quick Search Widget */}
-        <form action="/frota" method="GET" className="absolute bottom-[-40px] left-1/2 -translate-x-1/2 w-[90%] max-w-4xl glass p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row gap-4 items-end bg-black/60 backdrop-blur-2xl border border-white/10">
+        <form action="/frota" method="GET" className="absolute bottom-[-40px] left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row gap-4 items-end bg-black/60 backdrop-blur-2xl">
           <div className="flex-1 space-y-2 w-full">
             <label className="text-xs uppercase tracking-widest text-zinc-400 font-bold ml-1 block">Retirada</label>
             <input name="city" type="text" placeholder="Selecione a cidade" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 placeholder:text-zinc-500 outline-none focus:border-[#d4a017]/50 transition-all font-light" />

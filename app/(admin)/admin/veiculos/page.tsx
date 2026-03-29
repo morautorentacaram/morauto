@@ -1,104 +1,102 @@
-import { Plus, Search, MoreVertical, Edit, Trash } from "lucide-react"
-import { db } from "@/lib/db"
+import { getVehicles, deleteVehicle } from "@/app/actions/vehicle.actions";
+import { getCategories } from "@/app/actions/category.actions";
+import VehicleForm from "@/components/admin/VehicleForm";
+import { Trash2, CarFront } from "lucide-react";
+
+export const metadata = {
+  title: "Gerenciar Frota - Morauto Admin",
+};
 
 export default async function VehiclesPage() {
-  const vehicles = await db.vehicle.findMany({
-    include: { category: true },
-    orderBy: { createdAt: "desc" }
-  })
+  const vehicles = await getVehicles();
+  const categories = await getCategories();
 
   return (
-    <div className="space-y-6 text-white min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold font-outfit">Frota</h1>
-          <p className="text-zinc-400 font-light mt-1 text-sm">Gerencie os veículos disponíveis na locadora.</p>
-        </div>
-        <button className="bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#d4a017]/20">
-          <Plus size={20} /> Novo Veículo
-        </button>
+    <div className="space-y-8 p-6">
+      <div>
+        <h2 className="text-3xl font-outfit font-bold text-white tracking-tight">Gestão da Frota</h2>
+        <p className="text-zinc-400 mt-2">Cadastre e gerencie os veículos disponíveis para locação.</p>
       </div>
 
-      <div className="bg-black/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md">
-        <div className="p-4 border-b border-white/5 flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar por placa ou modelo..." 
-              className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 outline-none focus:border-[#d4a017]/50 text-sm font-light text-zinc-300 transition-all placeholder:text-zinc-600"
-            />
-          </div>
-          <select className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-light text-zinc-300 outline-none focus:border-[#d4a017]/50 cursor-pointer">
-            <option value="">Status</option>
-            <option value="AVAILABLE">Disponível</option>
-            <option value="RENTED">Alugado</option>
-            <option value="MAINTENANCE">Manutenção</option>
-          </select>
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        
+        {/* Formulário de Criação Sidebar */}
+        <div className="xl:col-span-1">
+          <VehicleForm categories={categories} />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white/5 text-zinc-400 text-xs uppercase tracking-widest font-semibold">
-                <th className="p-4 rounded-tl-xl font-normal">Veículo</th>
-                <th className="p-4 font-normal">Placa</th>
-                <th className="p-4 font-normal">Categoria</th>
-                <th className="p-4 font-normal">Status</th>
-                <th className="p-4 font-normal">Quilometragem</th>
-                <th className="p-4 rounded-tr-xl font-normal text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 text-sm uppercase font-mono">
-              {vehicles.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-zinc-500 font-light normal-case font-sans">
-                    Nenhum veículo encontrado. Adicione seu primeiro veículo.
-                  </td>
-                </tr>
-              ) : (
-                vehicles.map((v) => (
-                  <tr key={v.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="p-4 font-outfit uppercase font-bold text-white flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                        <img src={`https://ui-avatars.com/api/?name=${v.brand.charAt(0)}&background=18181b&color=d4a017`} alt={v.brand} className="w-6 h-6 rounded" />
-                      </div>
-                      <div>
-                        {v.brand} {v.model}
-                        <div className="text-xs text-zinc-500 font-light font-sans normal-case">{v.year} • {v.color}</div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-zinc-300 tracking-wider">
-                      <span className="bg-white/5 px-2 py-1 rounded border border-white/10">{v.plate}</span>
-                    </td>
-                    <td className="p-4 text-zinc-400 normal-case font-sans">
-                      {v.category.name}
-                    </td>
-                    <td className="p-4">
-                      {v.status === 'AVAILABLE' && <span className="text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full text-xs font-sans tracking-wide">Disponível</span>}
-                      {v.status === 'RENTED' && <span className="text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full text-xs font-sans tracking-wide">Alugado</span>}
-                      {v.status === 'MAINTENANCE' && <span className="text-red-400 bg-red-400/10 px-3 py-1 rounded-full text-xs font-sans tracking-wide">Manutenção</span>}
-                    </td>
-                    <td className="p-4 text-zinc-400 tracking-wider">
-                      {v.km.toLocaleString('pt-BR')} km
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Editar">
-                          <Edit size={16} />
-                        </button>
-                        <button className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Excluir">
-                          <Trash size={16} />
-                        </button>
-                      </div>
-                    </td>
+        {/* Tabela de Dados */}
+        <div className="xl:col-span-3">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-zinc-950/50 border-b border-zinc-800 text-zinc-400 text-sm">
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider">Veículo</th>
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider">Placa</th>
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider">Categoria</th>
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Ação</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/50">
+                  {vehicles.map((vehicle) => (
+                    <tr key={vehicle.id} className="hover:bg-zinc-800/30 transition-colors group">
+                      <td className="px-6 py-4 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <CarFront className="w-5 h-5 text-amber-500" />
+                        </div>
+                        <div>
+                          <div className="text-white font-medium">{vehicle.brand} {vehicle.model}</div>
+                          <div className="text-zinc-500 text-sm">{vehicle.year} • {vehicle.color}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-zinc-800 font-mono text-amber-500 px-2 py-1 rounded border border-amber-500/20">{vehicle.plate}</span>
+                      </td>
+                      <td className="px-6 py-4 text-zinc-300">
+                        {vehicle.category?.name || "Sem categoria"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {vehicle.status === "AVAILABLE" ? (
+                          <span className="text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full text-xs font-bold border border-emerald-400/20">DISPONÍVEL</span>
+                        ) : vehicle.status === "RENTED" ? (
+                          <span className="text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full text-xs font-bold border border-blue-400/20">ALUGADO</span>
+                        ) : (
+                          <span className="text-red-400 bg-red-400/10 px-3 py-1 rounded-full text-xs font-bold border border-red-400/20">{vehicle.status}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <form action={async () => {
+                          "use server";
+                          await deleteVehicle(vehicle.id);
+                        }}>
+                          <button 
+                            type="submit" 
+                            disabled={vehicle._count?.reservations > 0}
+                            className="text-red-400 hover:text-red-300 p-2 rounded-lg hover:bg-red-900/20 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                            title={vehicle._count?.reservations > 0 ? "Veículo possui histórico de reservas." : "Excluir"}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                  {vehicles.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                        Nenhum veículo cadastrado na frota ainda.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
-  )
+  );
 }

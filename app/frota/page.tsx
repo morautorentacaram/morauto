@@ -2,6 +2,8 @@ import { Search, MapPin, Calendar, ArrowRight } from "lucide-react"
 import { db } from "@/lib/db"
 import Link from "next/link"
 
+export const dynamic = 'force-dynamic';
+
 export default async function FrotaPage({
   searchParams,
 }: {
@@ -101,9 +103,9 @@ export default async function FrotaPage({
                       <span className="text-zinc-500 font-bold text-sm mb-1 uppercase">/ dia</span>
                     </div>
 
-                    <button className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-[#d4a017] transition-all flex items-center justify-center gap-2 shadow-lg group-hover:shadow-[#d4a017]/20">
+                    <Link href={`/checkout/${v.id}?city=${city || ''}&date=${date || ''}`} className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-[#d4a017] transition-all flex items-center justify-center gap-2 shadow-lg group-hover:shadow-[#d4a017]/20">
                       Selecionar <ArrowRight size={18} />
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

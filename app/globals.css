@@ -1,7 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source(none);
 
+@source "./";
+@source "../components";
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -28,34 +28,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-@layer components {
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-  }
-  
-  .premium-btn {
-    @apply px-6 py-3 rounded-full font-semibold transition-all duration-300
-    bg-black text-white hover:bg-zinc-800 hover:scale-[1.02] active:scale-[0.98]
-    dark:bg-white dark:text-black dark:hover:bg-zinc-200;
-  }
-
-  .accent-btn {
-    @apply px-6 py-3 rounded-full font-semibold transition-all duration-300
-    bg-[#d4a017] text-black hover:bg-[#b8860b] hover:shadow-lg hover:shadow-[#d4a017]/50;
-  }
-
-  .card-glow {
-    @apply relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-[#d4a017]/20;
-  }
-}
-
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-400/20 rounded-full hover:bg-zinc-400/40;
+  background: rgba(161, 161, 170, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.4);
 }
