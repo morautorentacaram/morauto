@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Proposta Morauto | MS Tech Group</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
+    
+    :root {
+      --gold: #D4A017;
+      --dark: #0D0D0D;
+      --slate: #475569;
+      --light-gray: #F8FAFC;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Inter', sans-serif; 
+      color: #334155;
+      background: #FFF;
+      line-height: 1.6;
+      -webkit-print-color-adjust: exact; 
+      print-color-adjust: exact;
+    }
+
+    .page { 
+      page-break-after: always; 
+      height: 1123px; 
+      width: 794px; 
+      margin: 0 auto; 
+      position: relative; 
+      overflow: hidden; 
+      background: white;
+      border: 1px solid #eee;
+    }
+    
+    .page:last-child { page-break-after: auto; }
+    
+    .container { padding: 70px 60px; height: 100%; display: flex; flex-direction: column; }
+    
+    .outfit { font-family: 'Outfit', sans-serif; }
+    
+    .header-accent { position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: var(--gold); opacity: 0.05; border-bottom-left-radius: 100%; z-index: 0; }
+    
+    .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 30px; }
+    
+    .feature-item { padding: 25px; border: 1px solid #E2E8F0; border-radius: 16px; background: #FFF; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    
+    .feature-item h4 { color: var(--dark); font-weight: 700; font-size: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    
+    .feature-item p { font-size: 13px; color: var(--slate); }
+
+    .tag { background: #F1F5F9; color: var(--slate); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
+    
+    .gold-line { height: 4px; width: 60px; background: var(--gold); border-radius: 2px; }
+
+    .image-box { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; background: #F8FAFC; margin: 20px 0; }
+    .image-box img { width: 100%; height: auto; display: block; }
+
+    h1 { font-family: 'Outfit'; font-size: 56px; font-weight: 900; line-height: 1; color: var(--dark); letter-spacing: -0.04em; }
+    h2 { font-family: 'Outfit'; font-size: 32px; font-weight: 700; color: var(--dark); letter-spacing: -0.02em; margin-bottom: 20px; }
+    h3 { font-family: 'Outfit'; font-size: 18px; font-weight: 700; color: var(--gold); text-transform: uppercase; border-bottom: 2px solid var(--gold); display: inline-block; margin-bottom: 10px; }
+
+    .footer-note { position: absolute; bottom: 50px; left: 60px; right: 60px; border-top: 1px solid #EEE; padding-top: 20px; font-size: 11px; color: #94A3B8; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <!-- CAPA -->
+  <div class="page">
+    <div class="header-accent"></div>
+    <div class="container justify-center items-center text-center">
+      <div class="tag">Digital Fleet Excellence</div>
+      <h1>Morauto<br/><span style="color: var(--gold)">Premium</span> Project</h1>
+      <p class="mt-6 text-xl text-slate-500 font-light max-w-md mx-auto">Desenvolvimento de ecossistema tecnológico completo para gestão e locação de frotas de alto padrão.</p>
+      
+      <div class="mt-16 gold-line mx-auto"></div>
+      
+      <div class="mt-24 space-y-4">
+        <p class="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">Apresentação exclusiva para</p>
+        <p class="text-3xl font-black outfit text-zinc-800 uppercase">Morauto Rent-a-Car</p>
+      </div>
+
+      <div class="mt-auto pt-20 border-t border-zinc-100 w-full flex justify-between items-end">
+        <div class="text-left">
+          <p class="text-[10px] font-bold uppercase text-zinc-400">Desenvolvimento por</p>
+          <p class="text-xl font-black outfit">MS TECH GROUP</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] font-bold uppercase text-zinc-400">Versão do Documento</p>
+          <p class="text-sm font-medium">Final-Build v4.1 (Março 2026)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRODUÇÃO & PROBLEMA/SOLUÇÃO -->
+  <div class="page">
+    <div class="container">
+      <h3>01. A Proposta</h3>
+      <h2>Por que um software sob medida?</h2>
+      
+      <p class="text-slate-600 mb-8 leading-relaxed">
+        Sistemas genéricos não entendem o cuidado e a agilidade que uma locadora de luxo exige. A Morauto precisa de uma ferramenta que seja ao mesmo tempo um <strong>vendedor incansável (Portal)</strong> e um <strong>gestor implacável (Admin)</strong>. Nossa solução elimina planilhas e unifica toda a operação em uma plataforma na nuvem.
+      </p>
+
+      <div class="grid grid-cols-2 gap-8">
+        <div class="space-y-4">
+          <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Desafios Atuais</p>
+          <ul class="space-y-3">
+             <li class="p-4 bg-red-50 rounded-xl text-xs text-red-800 font-medium">Overbooking e conflito de datas de locação.</li>
+             <li class="p-4 bg-red-50 rounded-xl text-xs text-red-800 font-medium">Dificuldade em cobrar infrações (multas) por falta de histórico claro.</li>
+             <li class="p-4 bg-red-50 rounded-xl text-xs text-red-800 font-medium">Burocracia em papel para check-ins e contratos.</li>
+          </ul>
+        </div>
+        <div class="space-y-4">
+           <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Nossa Solução</p>
+           <ul class="space-y-3">
+             <li class="p-4 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium">Motor de busca com trava automática de agenda.</li>
+             <li class="p-4 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium">Vistoria fotográfica digital integrada ao contrato.</li>
+             <li class="p-4 bg-emerald-50 rounded-xl text-xs text-emerald-800 font-medium">Identificação automática de condutor via sistema NIC.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="image-box mt-10">
+        <!-- Mockup do Dashboard -->
+        <img src="file:///C:/Users/zilda/.gemini/antigravity/brain/f6d944f2-fb0f-4cd7-aba1-91a8cd369551/admin_dashboard_mockup_1774820544060.png" alt="Dashboard Mockup" />
+      </div>
+      <p class="text-[10px] text-zinc-400 italic text-center">Dashboard central: Controle total de faturamento, frotas paradas e contratos ativos.</p>
+    </div>
+  </div>
+
+  <!-- PORTAL DO CLIENTE (MOBILE FIRST) -->
+  <div class="page">
+    <div class="container">
+      <h3>02. Experiência do Cliente</h3>
+      <h2>Sua Frota na Palma da Mão.</h2>
+      
+      <p class="text-slate-600 mb-8 text-sm">Design focado em conversão e facilidade de uso em dispositivos móveis. Seu cliente reserva o carro ideal em menos de 1 minuto.</p>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div class="feature-item">
+          <h4><div class="w-2 h-2 rounded-full bg-gold" style="background:var(--gold)"></div> Busca Inteligente</h4>
+          <p>Filtros por categoria (SUV, Luxo, Sedan), combustível, câmbio e faixa de preço. O cliente vê apenas o que realmente está disponível para a data dele.</p>
+        </div>
+        <div class="feature-item">
+          <h4><div class="w-2 h-2 rounded-full bg-gold" style="background:var(--gold)"></div> Identificação Google</h4>
+          <p>Login simplificado via Google. Se o cliente já está em seu banco de dados, o sistema o reconhece e preenche as informações automaticamente, evitando cadastros duplicados.</p>
+        </div>
+        <div class="feature-item">
+          <h4><div class="w-2 h-2 rounded-full bg-gold" style="background:var(--gold)"></div> "Minhas Reservas"</h4>
+          <p>Painel exclusivo do cliente para baixar contratos em PDF, ver histórico de locações e acompanhar o status de pagamentos/caução.</p>
+        </div>
+         <div class="feature-item border-emerald-200 bg-emerald-50/20">
+          <h4><div class="w-2 h-2 rounded-full bg-emerald-500"></div> Checkout BB-Ready</h4>
+          <p>Integração total com o Banco do Brasil para geração de QR Code Pix e verificação de boletos. O sistema libera a reserva assim que o banco confirma o recebimento.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 mt-8 items-center bg-zinc-950 rounded-2xl overflow-hidden min-h-[400px]">
+        <div class="p-10">
+           <p class="text-gold font-bold italic text-sm mb-4">Módulo Mobile App</p>
+           <h2 class="text-white text-2xl leading-tight mb-4">Otimizado para Celulares (PWA)</h2>
+           <p class="text-zinc-400 text-xs leading-relaxed">Não é apenas um site. É um aplicativo instalável que ocupa zero memória e garante que sua marca esteja sempre na tela inicial do cliente.</p>
+        </div>
+        <div class="relative h-full bg-zinc-900 border-l border-white/5 flex items-center justify-center p-6">
+          <img src="file:///C:/Users/zilda/.gemini/antigravity/brain/f6d944f2-fb0f-4cd7-aba1-91a8cd369551/app_mockup_mobile_1774820528132.png" class="rounded-3xl shadow-2xl" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN: O CORAÇÃO DO SISTEMA -->
+  <div class="page">
+    <div class="container">
+      <h3>03. Dashboard Administrativo</h3>
+      <h2>Controle Total, Risco Zero.</h2>
+      <p class="text-slate-600 mb-8 text-sm">O painel interno é onde a inteligência da Morauto reside. Tudo o que você precisa para gerenciar 10 ou 1.000 veículos.</p>
+
+      <div class="space-y-4">
+        <div class="feature-item grid grid-cols-12 gap-6 items-start">
+           <div class="col-span-1 text-2xl font-black text-zinc-200">01</div>
+           <div class="col-span-11">
+             <h4 class="text-md">Vistoria Fotográfica Digital (Check-in/Out)</h4>
+             <p>O vistoriador usa o próprio tablet/celular para marcar avarias, nível do tanque e KM. Ele tira fotos em tempo real que ficam amarradas ao contrato. <strong>Evita discussões e perdas por danos não registrados.</strong></p>
+           </div>
+        </div>
+        
+        <div class="feature-item grid grid-cols-12 gap-6 items-start">
+           <div class="col-span-1 text-2xl font-black text-zinc-200">02</div>
+           <div class="col-span-11">
+             <h4 class="text-md">Integração de Multas (NIC)</h4>
+             <p>Quando a multa chega, você só precisa digitar a placa e o horário. O sistema varre o histórico e diz na hora qual cliente era o condutor. Permite o repasse automático do valor e indicação do infrator em segundos.</p>
+           </div>
+        </div>
+
+        <div class="feature-item grid grid-cols-12 gap-6 items-start">
+           <div class="col-span-1 text-2xl font-black text-zinc-200">03</div>
+           <div class="col-span-11">
+             <h4 class="text-md">Automação WhatsApp & Banco do Brasil</h4>
+             <p>O sistema "cobra" por você. Envia lembretes de devolução, boletos do BB e links de Pix direto no zap do cliente. Baixa manual zero. Sua equipe foca em vender, não em conferir extrato.</p>
+           </div>
+        </div>
+
+        <div class="feature-item grid grid-cols-12 gap-6 items-start">
+           <div class="col-span-1 text-2xl font-black text-zinc-200">04</div>
+           <div class="col-span-11">
+             <h4 class="text-md">Gestão de Score e Blacklist</h4>
+             <p>Identifique clientes bons e ruins. Bloqueie CPFs problemáticos para que eles sequer consigam orçar no portal. Segurança absoluta para seu patrimônio.</p>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVESTIMENTO -->
+  <div class="page bg-zinc-950 text-white">
+    <div class="container justify-center items-center">
+      <h3 class="gold-text">Viabilização do Projeto</h3>
+      <h2 class="text-white text-5xl font-black mb-12">Investimento & Prazos</h2>
+      
+      <div class="w-full max-w-lg bg-zinc-900 border border-white/5 rounded-[32px] p-12 text-center relative">
+         <div class="absolute inset-0 bg-gold opacity-[0.02] pointer-events-none rounded-[32px]"></div>
+         <p class="text-zinc-500 font-bold uppercase tracking-[0.2em] text-[10px] mb-4">Investimento Total Desenvolvimento</p>
+         <div class="flex items-end justify-center gap-2 mb-8">
+            <span class="text-3xl text-gold font-bold">R$</span>
+            <span class="text-7xl font-black outfit leading-none">3.500,00</span>
+         </div>
+         
+         <div class="space-y-4 text-[13px] border-t border-white/5 pt-8 mb-8 text-left">
+           <p><span class="text-gold font-bold mr-2">✓</span> Portal do Cliente Premium (Design Ouro)</p>
+           <p><span class="text-gold font-bold mr-2">✓</span> Dashboard Administrativo Completo</p>
+           <p><span class="text-gold font-bold mr-2">✓</span> Módulo de Vistoria Fotográfica Móvel</p>
+           <p><span class="text-emerald-400 font-bold mr-2">✓</span> Integração Banco do Brasil (Pix/Boleto)</p>
+           <p><span class="text-emerald-400 font-bold mr-2">✓</span> Bot Inteligente WhatsApp (Alertas)</p>
+           <p><span class="text-zinc-500 font-bold mr-2">✓</span> Garantia de 30 Dias Pós-Entrega</p>
+         </div>
+
+         <div class="bg-white/5 rounded-2xl p-6 text-sm text-center">
+           <p class="text-zinc-400 font-light">Estimativa de Entrega Final:</p>
+           <p class="text-white font-bold mt-1 text-lg">15 a 21 Dias Úteis</p>
+         </div>
+      </div>
+
+      <div class="mt-20 text-center">
+         <p class="text-xl font-black outfit uppercase">MS TECH GROUP</p>
+         <p class="text-zinc-500 text-xs mt-2">Tecnologia que move o seu negócio.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
