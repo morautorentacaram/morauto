@@ -1,5 +1,6 @@
 import { getContracts, generateRentalContract } from "@/app/actions/contract.actions"
 import { getReservations } from "@/app/actions/reservation.actions"
+type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
 import { formatCurrency } from "@/lib/utils"
 import { FileText, Eye, FilePlus, CheckCircle } from "lucide-react"
 import Link from "next/link"
@@ -46,7 +47,7 @@ export default async function ContractsPage() {
             Reservas sem Contrato
           </h3>
           <div className="space-y-3">
-            {reservationsWithoutContract.map((r) => (
+            {reservationsWithoutContract.map((r: ReservationType) => (
               <div key={r.id} className="flex items-center justify-between bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
                 <div>
                   <p className="text-white font-medium">{r.customer.user.name} — {r.vehicle.brand} {r.vehicle.model}</p>

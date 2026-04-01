@@ -46,7 +46,7 @@ export default async function MyReservationsPage({
   if (filter === "PENDING")   whereFilter.status = { in: ["PENDING", "CONFIRMED"] }
   if (filter === "COMPLETED") whereFilter.status = "COMPLETED"
 
-  const reservations = customer
+  const reservationQuery = customer
     ? await db.reservation.findMany({
         where: whereFilter,
         include: {
@@ -57,6 +57,8 @@ export default async function MyReservationsPage({
         orderBy: { createdAt: "desc" },
       })
     : []
+  type ResType = (typeof reservationQuery)[0]
+  const reservations: ResType[] = reservationQuery
 
   // Counts for tab badges
   const allCounts = customer
@@ -71,7 +73,7 @@ export default async function MyReservationsPage({
   const totalCount = Object.values(countByStatus).reduce((a, b) => a + b, 0)
   const pendingTabCount = (countByStatus["PENDING"] ?? 0) + (countByStatus["CONFIRMED"] ?? 0)
 
-  const activeRental = reservations.find((r) => r.status === "ACTIVE") ??
+  const activeRental = reservations.find((r: ResType) => r.status === "ACTIVE") ??
     (filter
       ? (await db.reservation.findFirst({
           where: { customerId: customer?.id, status: "ACTIVE" },
@@ -192,7 +194,7 @@ export default async function MyReservationsPage({
           </div>
         ) : (
           <div className="space-y-4">
-            {reservations.map((r) => {
+            {reservations.map((r: ResType) => {
               const cfg = statusConfig[r.status] ?? { label: r.status, color: "text-zinc-400", dot: "bg-zinc-400" }
               const payment = r.payments[0]
               const days = Math.ceil(

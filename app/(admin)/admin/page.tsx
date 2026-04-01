@@ -1,4 +1,6 @@
 import { getDashboardMetrics } from "@/app/actions/reports.actions"
+type DashMetrics = Awaited<ReturnType<typeof getDashboardMetrics>>
+type RecentReservationType = DashMetrics["recentReservations"][0]
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import {
@@ -120,7 +122,7 @@ export default async function AdminDashboardPage() {
             {m.recentReservations.length === 0 ? (
               <p className="text-zinc-500 text-sm">Nenhuma reserva.</p>
             ) : (
-              m.recentReservations.map((r) => {
+              m.recentReservations.map((r: RecentReservationType) => {
                 const statusColor =
                   r.status === "ACTIVE"     ? "bg-emerald-400" :
                   r.status === "CONFIRMED"  ? "bg-blue-400" :

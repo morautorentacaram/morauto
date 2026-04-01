@@ -1,6 +1,7 @@
 import { getFines, updateFineStatus, deleteFine } from "@/app/actions/fine.actions"
 import { getVehicles } from "@/app/actions/vehicle.actions"
 import { getReservations } from "@/app/actions/reservation.actions"
+type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
 import FineForm from "@/components/admin/FineForm"
 import FinePhotosCell from "@/components/admin/FinePhotosCell"
 import { formatCurrency } from "@/lib/utils"
@@ -28,7 +29,7 @@ export default async function FinesPage() {
   const totalPaid = fines.filter((f) => f.status === "PAID" || f.status === "SETTLED").reduce((a, f) => a + Number(f.amount), 0)
 
   const vehicleList = vehicles.map((v) => ({ id: v.id, brand: v.brand, model: v.model, plate: v.plate }))
-  const reservationList = reservations.map((r) => ({
+  const reservationList = reservations.map((r: ReservationType) => ({
     id: r.id,
     vehicle: { plate: r.vehicle.plate },
     customer: { user: { name: r.customer.user.name } },

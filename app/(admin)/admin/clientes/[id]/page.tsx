@@ -84,7 +84,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
           <p className="text-zinc-500 text-xs uppercase tracking-wider">Concluídas</p>
-          <p className="text-3xl font-bold text-purple-400 mt-1">{customer.reservations.filter(r => r.status === "COMPLETED").length}</p>
+          <p className="text-3xl font-bold text-purple-400 mt-1">{customer.reservations.filter((r: ReservationType) => r.status === "COMPLETED").length}</p>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-center">
           <p className="text-zinc-500 text-xs uppercase tracking-wider">Total Gasto</p>

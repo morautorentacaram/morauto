@@ -1,4 +1,6 @@
 import { getFinancialSummary, confirmPayment, refundPayment } from "@/app/actions/financial.actions"
+type FinancialSummaryType = Awaited<ReturnType<typeof getFinancialSummary>>
+type OverdueReservationType = FinancialSummaryType["overdueReservations"][0]
 import { formatCurrency } from "@/lib/utils"
 import { DollarSign, TrendingUp, Clock, AlertCircle, CheckCircle, RotateCcw } from "lucide-react"
 
@@ -72,7 +74,7 @@ export default async function FinancialPage() {
             {summary.overdueReservations.length === 0 ? (
               <p className="text-zinc-500 text-sm">Nenhuma locação em atraso.</p>
             ) : (
-              summary.overdueReservations.map((r) => (
+              summary.overdueReservations.map((r: OverdueReservationType) => (
                 <div key={r.id} className="flex items-start justify-between gap-2 pb-3 border-b border-zinc-800 last:border-0 last:pb-0">
                   <div>
                     <p className="text-white text-sm font-medium">{r.customer.user.name}</p>
