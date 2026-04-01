@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
-import { handlers } from "@/auth"
+import { handlers } from "@/auth";
 
-export const { GET, POST } = handlers
+// API routes are dynamic by default — no need for explicit force-dynamic
+export const { GET, POST } = handlers;
