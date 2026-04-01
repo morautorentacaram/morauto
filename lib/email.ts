@@ -1,6 +1,11 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy singleton — only created when an email function is actually called.
+function getResend() {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  return new Resend(key)
+}
 
 export async function sendReservationConfirmation({
   to,
@@ -19,7 +24,8 @@ export async function sendReservationConfirmation({
   totalValue: number
   reservationId: string
 }) {
-  if (!process.env.RESEND_API_KEY) return { skipped: true }
+  const resend = getResend()
+  if (!resend) return { skipped: true }
 
   const formatted = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalValue)
 
@@ -78,7 +84,8 @@ export async function sendMaintenanceAlert({
   description: string
   date: string
 }) {
-  if (!process.env.RESEND_API_KEY) return { skipped: true }
+  const resend = getResend()
+  if (!resend) return { skipped: true }
 
   return resend.emails.send({
     from: "Morauto <noreply@morauto.com.br>",
