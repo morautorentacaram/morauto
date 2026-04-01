@@ -15,23 +15,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // Lazy imports — kept out of module scope so Turbopack never bundles
-        // pg/PrismaClient into the shared SSR chunk during static build.
-        const { db }     = await import("./lib/db")
-        const { default: bcrypt } = await import("bcryptjs")
+        try {
+          // Lazy imports — kept out of module scope so Turbopack never bundles
+          // pg/PrismaClient into the shared SSR chunk during static build.
+          const { db }     = await import("./lib/db")
+          const { default: bcrypt } = await import("bcryptjs")
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email as string },
-        })
+          const user = await db.user.findUnique({
+            where: { email: credentials.email as string },
+          })
 
-        if (!user || !user.password) return null
+          if (!user || !user.password) return null
 
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
+          const passwordsMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
 
-        return passwordsMatch ? user : null
+          return passwordsMatch ? user : null
+        } catch (err) {
+          console.error("[auth] authorize error:", err)
+          return null
+        }
       },
     }),
   ],
