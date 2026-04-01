@@ -1,7 +1,6 @@
+import { auth } from "@/auth"
 import { Search, MapPin, Calendar, ArrowRight, SlidersHorizontal, Fuel, Settings2, CarFront, User } from "lucide-react"
 import Image from "next/image"
-import { db } from "@/lib/db"
-import { auth } from "@/auth"
 import Link from "next/link"
 import Navbar from "@/components/public/Navbar"
 import Footer from "@/components/public/Footer"
@@ -16,23 +15,32 @@ export default async function FrotaPage({
   searchParams: Promise<{ city?: string; date?: string; endDate?: string; category?: string; transmission?: string; fuel?: string; sort?: string }>
 }) {
   const { city, date, endDate, category, transmission, fuel, sort } = await searchParams
-  const session = await auth()
 
-  const categories = await db.category.findMany({ orderBy: { dailyRate: "asc" } })
+  let session = null
+  let categories: any[] = []
+  let vehicles: any[] = []
 
-  const vehicles = await db.vehicle.findMany({
-    where: {
-      status: "AVAILABLE",
-      ...(category ? { categoryId: category } : {}),
-      ...(transmission ? { transmission } : {}),
-      ...(fuel ? { fuelType: fuel } : {}),
-    },
-    include: { category: true },
-    orderBy:
-      sort === "price_desc" ? { category: { dailyRate: "desc" } }
-      : sort === "year" ? { year: "desc" }
-      : { category: { dailyRate: "asc" } },
-  })
+  try { session = await auth() } catch {}
+
+  try {
+    const { db } = await import("@/lib/db")
+    categories = await db.category.findMany({ orderBy: { dailyRate: "asc" } })
+    vehicles = await db.vehicle.findMany({
+      where: {
+        status: "AVAILABLE",
+        ...(category ? { categoryId: category } : {}),
+        ...(transmission ? { transmission } : {}),
+        ...(fuel ? { fuelType: fuel } : {}),
+      },
+      include: { category: true },
+      orderBy:
+        sort === "price_desc" ? { category: { dailyRate: "desc" } }
+        : sort === "year" ? { year: "desc" }
+        : { category: { dailyRate: "asc" } },
+    })
+  } catch (e) {
+    console.error("[Frota] DB error:", e)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
