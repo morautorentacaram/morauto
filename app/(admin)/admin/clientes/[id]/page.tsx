@@ -1,4 +1,6 @@
 import { getCustomerById, blockCustomer, unblockCustomer, updateCustomerScore } from "@/app/actions/customer.actions"
+type CustomerType = NonNullable<Awaited<ReturnType<typeof getCustomerById>>>
+type ReservationType = CustomerType["reservations"][0]
 import { formatCurrency } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -25,8 +27,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   if (!customer) notFound()
 
   const totalSpent = customer.reservations
-    .filter((r) => r.status === "COMPLETED")
-    .reduce((acc, r) => acc + Number(r.totalValue), 0)
+    .filter((r: ReservationType) => r.status === "COMPLETED")
+    .reduce((acc: number, r: ReservationType) => acc + Number(r.totalValue), 0)
 
   return (
     <div className="space-y-6 p-6 max-w-5xl mx-auto">
@@ -233,7 +235,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
-              {customer.reservations.map((r) => {
+              {customer.reservations.map((r: ReservationType) => {
                 const cfg = reservationStatus[r.status] ?? { label: r.status, color: "text-zinc-400" }
                 const payment = r.payments[0]
                 return (

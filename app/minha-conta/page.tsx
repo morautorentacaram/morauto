@@ -42,15 +42,16 @@ export default async function MinhaContaPage() {
   const initials = (session.user.name ?? "C")
     .split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()
 
-  const reservations = customer?.reservations ?? []
-  const activeRental = reservations.find((r) => r.status === "ACTIVE")
-  const pendingPayments = reservations.flatMap((r) =>
+  type ResType = NonNullable<typeof customer>["reservations"][0]
+  const reservations: ResType[] = customer?.reservations ?? []
+  const activeRental = reservations.find((r: ResType) => r.status === "ACTIVE")
+  const pendingPayments = reservations.flatMap((r: ResType) =>
     r.payments.filter((p) => p.status === "PENDING")
   )
   const totalSpent = reservations
-    .filter((r) => r.status === "COMPLETED" || r.status === "ACTIVE")
-    .reduce((acc, r) => acc + Number(r.totalValue), 0)
-  const completedCount = reservations.filter((r) => r.status === "COMPLETED").length
+    .filter((r: ResType) => r.status === "COMPLETED" || r.status === "ACTIVE")
+    .reduce((acc: number, r: ResType) => acc + Number(r.totalValue), 0)
+  const completedCount = reservations.filter((r: ResType) => r.status === "COMPLETED").length
   const recentReservations = reservations.slice(0, 4)
 
   const daysUntilReturn = activeRental
@@ -221,7 +222,7 @@ export default async function MinhaContaPage() {
             </Link>
           </div>
           <div className="space-y-2">
-            {recentReservations.map((r) => {
+            {recentReservations.map((r: ResType) => {
               const cfg = statusConfig[r.status] ?? { label: r.status, color: "text-zinc-400 bg-zinc-800 border-zinc-700" }
               const payment = r.payments[0]
               return (

@@ -1,4 +1,5 @@
 import { getReservations } from "@/app/actions/reservation.actions"
+type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
 import { generateRentalContract } from "@/app/actions/contract.actions"
 import { getCustomers } from "@/app/actions/customer.actions"
 import { getAvailableVehicles } from "@/app/actions/vehicle.actions"
@@ -37,16 +38,16 @@ export default async function ReservationsPage({
     getAvailableVehicles(),
   ])
 
-  const pending   = reservations.filter((r) => r.status === "PENDING").length
-  const confirmed = reservations.filter((r) => r.status === "CONFIRMED").length
-  const active    = reservations.filter((r) => r.status === "ACTIVE").length
+  const pending   = reservations.filter((r: ReservationType) => r.status === "PENDING").length
+  const confirmed = reservations.filter((r: ReservationType) => r.status === "CONFIRMED").length
+  const active    = reservations.filter((r: ReservationType) => r.status === "ACTIVE").length
   const totalRevenue = reservations
-    .filter((r) => r.status === "COMPLETED")
-    .reduce((acc, r) => acc + Number(r.totalValue), 0)
+    .filter((r: ReservationType) => r.status === "COMPLETED")
+    .reduce((acc: number, r: ReservationType) => acc + Number(r.totalValue), 0)
 
   const today = new Date()
   const overdueCount = reservations.filter(
-    (r) => r.status === "ACTIVE" && new Date(r.endDate) < today
+    (r: ReservationType) => r.status === "ACTIVE" && new Date(r.endDate) < today
   ).length
 
   return (
@@ -110,7 +111,7 @@ export default async function ReservationsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
-              {reservations.map((r) => {
+              {reservations.map((r: ReservationType) => {
                 const payment   = (r as any).payments?.[0]
                 const isOverdue = r.status === "ACTIVE" && new Date(r.endDate) < today
                 const daysLeft  = Math.ceil((new Date(r.endDate).getTime() - today.getTime()) / 86400000)
