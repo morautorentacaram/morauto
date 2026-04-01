@@ -22,9 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
-import { MobileNav } from "@/components/public/mobile-nav";
-import InstallPWA from "@/components/public/InstallPWA";
-
+// Root layout kept minimal — no DB-dependent imports here.
+// MobileNav and InstallPWA moved to (public)/layout.tsx
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,8 +33,6 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${inter.variable} ${outfit.variable} antialiased selection:bg-[#d4a017] selection:text-black mb-16 md:mb-0`}>
         {children}
-        <MobileNav />
-        <InstallPWA />
       </body>
     </html>
   );

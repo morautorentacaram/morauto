@@ -2,17 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    // Os erros são de inferência gerada pelo Next.js 16 em .next/types — não afetam o runtime
     ignoreBuildErrors: true,
   },
-  // Pacotes que usam node: built-ins precisam ser resolvidos pelo Node.js em runtime,
-  // não pelo Turbopack durante o bundling do SSR.
   serverExternalPackages: [
     "@prisma/adapter-pg",
     "@prisma/client",
     "pg",
-    "pg-native",
     "bcryptjs",
+    // NOTE: pg-native removed from here — aliased to false below instead
   ],
   images: {
     remotePatterns: [
@@ -22,6 +19,22 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/**",
       },
     ],
+  },
+  // pg optionally tries to require('pg-native') — alias it to false so
+  // both Turbopack (Vercel) and webpack silently skip it
+  webpack(config) {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "pg-native": false,
+    };
+    return config;
+  },
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        "pg-native": false,
+      },
+    },
   },
 };
 
