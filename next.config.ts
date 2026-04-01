@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import path from "path";
+
+const pgNativeStub = path.resolve("./lib/pg-native-stub.js");
 
 const nextConfig: NextConfig = {
   typescript: {
@@ -10,6 +13,8 @@ const nextConfig: NextConfig = {
     "pg",
     "bcryptjs",
     "@auth/prisma-adapter",
+    // pg-native is an optional addon — stub it out so bundlers skip it cleanly
+    "pg-native",
   ],
   images: {
     remotePatterns: [
@@ -20,19 +25,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // pg optionally tries to require('pg-native') — alias to false so the bundler
-  // silently skips it instead of crashing with externalRequire on Vercel
   webpack(config) {
+    // Alias pg-native to an empty stub for webpack builds
     config.resolve.alias = {
       ...config.resolve.alias,
-      "pg-native": false,
+      "pg-native": pgNativeStub,
     };
     return config;
   },
   turbopack: {
     resolveAlias: {
-      // false is not valid here; use an empty module path trick via webpack above
-      // Turbopack will respect serverExternalPackages + webpack alias fallback
+      // Alias pg-native to local stub for Turbopack (Vercel production builds)
+      "pg-native": pgNativeStub,
     },
   },
 };
