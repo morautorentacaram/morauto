@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { createContractSubmission, buildContractHtml } from "@/lib/docuseal"
 
 // ── Company constants ─────────────────────────────────────────────────────────
 const COMPANY = {
@@ -113,6 +114,51 @@ export async function generateRentalContract(reservationId: string) {
   } catch (error) {
     console.error(error)
     return { error: "Erro ao gerar contrato." }
+  }
+}
+
+// ── Send for signature via DocuSeal ──────────────────────────────────────────
+export async function sendContractForSignature(contractId: string) {
+  try {
+    const contract = await db.rentalContract.findUnique({
+      where: { id: contractId },
+      include: { customer: { include: { user: true } } },
+    })
+
+    if (!contract) return { error: "Contrato não encontrado." }
+    if (contract.signedAt) return { error: "Contrato já assinado." }
+    if (contract.docusealSubmissionId) return { error: "Contrato já enviado para assinatura." }
+
+    const email = contract.customer.user.email
+    const name  = contract.customer.user.name
+
+    if (!email) return { error: "Cliente sem e-mail cadastrado." }
+
+    const html       = buildContractHtml(contract.terms, contract.number)
+    const submission = await createContractSubmission({
+      contractNumber: contract.number,
+      html,
+      signerEmail: email,
+      signerName:  name ?? email,
+      sendEmail:   true,
+    })
+
+    const submitter = submission.submitters?.[0]
+    if (!submitter) return { error: "Erro ao criar submissão no DocuSeal." }
+
+    await db.rentalContract.update({
+      where: { id: contractId },
+      data: {
+        docusealSubmissionId:  String(submission.id),
+        docusealSubmitterSlug: submitter.slug,
+      },
+    })
+
+    revalidatePath(`/admin/contratos/${contractId}`)
+    return { success: true, embedSrc: submitter.embed_src, slug: submitter.slug }
+  } catch (error) {
+    console.error("[sendContractForSignature]", error)
+    return { error: "Erro ao enviar contrato para assinatura." }
   }
 }
 

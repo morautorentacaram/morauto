@@ -3,6 +3,7 @@ import { formatCurrency } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import ContractPdfButton from "@/components/admin/ContractPdfButton"
+import SendForSignatureButton from "@/components/admin/SendForSignatureButton"
 import {
   ArrowLeft, CheckCircle, Clock, Car, User, Building2,
   CalendarDays, DollarSign, FileText, ShieldAlert, Wrench,
@@ -61,6 +62,11 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           <ArrowLeft size={16} /> Voltar
         </Link>
         <div className="flex items-center gap-3">
+          <SendForSignatureButton
+            contractId={contract.id}
+            isSent={!!contract.docusealSubmissionId}
+            isSigned={!!contract.signedAt}
+          />
           <ContractPdfButton contract={contract} />
         </div>
       </div>

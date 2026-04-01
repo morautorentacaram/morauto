@@ -2,6 +2,9 @@ import { getCategories, deleteCategory } from "@/app/actions/category.actions";
 import CategoryForm from "@/components/admin/CategoryForm";
 import { formatCurrency } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
+import type { Category } from "@prisma/client";
+
+type CategoryWithCount = Category & { _count: { vehicles: number } };
 
 export const metadata = {
   title: "Gerenciar Categorias - Morauto Admin",
@@ -39,7 +42,7 @@ export default async function CategoriesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/50">
-                  {categories.map((category) => (
+                  {(categories as CategoryWithCount[]).map((category) => (
                     <tr key={category.id} className="hover:bg-zinc-800/30 transition-colors group">
                       <td className="px-6 py-4">
                         <span className="text-white font-medium">{category.name}</span>

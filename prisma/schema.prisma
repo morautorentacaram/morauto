@@ -187,6 +187,10 @@ model RentalContract {
   signedAt         DateTime?
   pdfUrl           String?
 
+  // DocuSeal integration
+  docusealSubmissionId  String?
+  docusealSubmitterSlug String?
+
   reservationId    String      @unique
   reservation      Reservation @relation(fields: [reservationId], references: [id])
 

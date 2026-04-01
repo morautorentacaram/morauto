@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Car, FileText, ExternalLink, CheckCircle, Clock } from "lucide-react"
+import { Car, FileText, ExternalLink, CheckCircle, Clock, PenLine } from "lucide-react"
 
 export const metadata = { title: "Meus Contratos — Morauto" }
 
@@ -54,6 +54,7 @@ export default async function ContratosPage() {
         <div className="space-y-4">
           {contracts.map((contract) => {
             const isSigned = !!contract.signedAt
+            const isSent   = !!contract.docusealSubmitterSlug
             return (
               <div
                 key={contract.id}
@@ -78,11 +79,15 @@ export default async function ContratosPage() {
                     className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border flex-shrink-0 ${
                       isSigned
                         ? "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
+                        : isSent
+                        ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
                         : "text-amber-400 bg-amber-400/10 border-amber-400/20"
                     }`}
                   >
                     {isSigned ? (
                       <><CheckCircle size={12} /> Assinado</>
+                    ) : isSent ? (
+                      <><PenLine size={12} /> Assinar agora</>
                     ) : (
                       <><Clock size={12} /> Pendente</>
                     )}
@@ -110,13 +115,22 @@ export default async function ContratosPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-3">
-                  <Link
-                    href={`/admin/contratos/${contract.id}`}
-                    className="flex items-center gap-1.5 text-sm text-[#d4a017] hover:text-[#b8860b] font-semibold transition-colors"
-                  >
-                    <ExternalLink size={14} /> Ver Detalhes
-                  </Link>
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                  {isSent && !isSigned ? (
+                    <Link
+                      href={`/minha-conta/contratos/${contract.id}`}
+                      className="flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-xl bg-[#d4a017] hover:bg-[#b8860b] text-black transition-colors"
+                    >
+                      <PenLine size={14} /> Assinar Contrato
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/minha-conta/contratos/${contract.id}`}
+                      className="flex items-center gap-1.5 text-sm text-[#d4a017] hover:text-[#b8860b] font-semibold transition-colors"
+                    >
+                      <ExternalLink size={14} /> Ver Detalhes
+                    </Link>
+                  )}
                   {contract.pdfUrl && (
                     <a
                       href={contract.pdfUrl}
