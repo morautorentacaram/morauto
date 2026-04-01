@@ -10,7 +10,14 @@ async function getDb(): Promise<PrismaClient> {
   if (_db) return _db
   const { PrismaClient } = await import("@prisma/client")
   const { PrismaPg }     = await import("@prisma/adapter-pg")
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  // Strip pgbouncer=true — that's a Prisma-engine hint, not a valid pg parameter.
+  // Add SSL for Supabase/Vercel (rejectUnauthorized:false needed for pooler certs).
+  const connectionString = (process.env.DATABASE_URL ?? "")
+    .replace(/[?&]pgbouncer=true/gi, "")
+  const adapter = new PrismaPg({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+  })
   _db = new PrismaClient({ adapter })
   return _db
 }
