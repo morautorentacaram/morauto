@@ -4,7 +4,7 @@ import Link from "next/link"
 import {
   LayoutDashboard, CarFront, Users, FileText, LogOut, Settings,
   Wrench, AlertTriangle, DollarSign, ClipboardCheck, Building2,
-  BarChart3, CalendarClock
+  BarChart3, CalendarClock, Tag
 } from "lucide-react"
 
 export default async function AdminLayout({
@@ -49,6 +49,10 @@ export default async function AdminLayout({
           {(role === "ADMIN" || role === "MANAGER" || role === "FINANCIAL") && (
             <NavItem href="/admin/financeiro" icon={<DollarSign size={16} />} label="Financeiro" />
           )}
+
+          <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest px-3 py-2 mt-4">Vendas</p>
+          <NavItem href="/admin/vendas" icon={<Tag size={16} />} label="Veículos à Venda" />
+          <NavItem href="/admin/vendas/contratos" icon={<FileText size={16} />} label="Contratos de Venda" />
 
           <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest px-3 py-2 mt-4">Frota & Infrações</p>
           <NavItem href="/admin/manutencao" icon={<Wrench size={16} />} label="Manutenção" />

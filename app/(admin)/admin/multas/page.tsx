@@ -2,6 +2,7 @@ import { getFines, updateFineStatus, deleteFine } from "@/app/actions/fine.actio
 import { getVehicles } from "@/app/actions/vehicle.actions"
 import { getReservations } from "@/app/actions/reservation.actions"
 import FineForm from "@/components/admin/FineForm"
+import FinePhotosCell from "@/components/admin/FinePhotosCell"
 import { formatCurrency } from "@/lib/utils"
 import { AlertTriangle, Trash2 } from "lucide-react"
 
@@ -74,6 +75,7 @@ export default async function FinesPage() {
                     <th className="px-6 py-4 font-medium uppercase tracking-wider">Infração</th>
                     <th className="px-6 py-4 font-medium uppercase tracking-wider">Data</th>
                     <th className="px-6 py-4 font-medium uppercase tracking-wider">Valor</th>
+                    <th className="px-6 py-4 font-medium uppercase tracking-wider">Fotos</th>
                     <th className="px-6 py-4 font-medium uppercase tracking-wider">Status</th>
                     <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Ações</th>
                   </tr>
@@ -98,6 +100,9 @@ export default async function FinesPage() {
                         </td>
                         <td className="px-6 py-4 text-zinc-400 text-sm">{new Date(fine.date).toLocaleDateString("pt-BR")}</td>
                         <td className="px-6 py-4 text-red-400 font-semibold text-sm">{formatCurrency(Number(fine.amount))}</td>
+                        <td className="px-6 py-4">
+                          <FinePhotosCell photos={fine.photos} />
+                        </td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-bold border ${cfg.class}`}>{cfg.label}</span>
                         </td>

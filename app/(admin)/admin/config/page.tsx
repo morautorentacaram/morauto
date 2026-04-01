@@ -13,11 +13,11 @@ export default function ConfigPage() {
         <h3 className="text-white font-semibold mb-5">Dados da Empresa</h3>
         <div className="space-y-4">
           {[
-            { label: "Razão Social", placeholder: "Morauto Locadora de Veículos Ltda.", name: "companyName" },
-            { label: "CNPJ", placeholder: "00.000.000/0001-00", name: "cnpj" },
-            { label: "E-mail", placeholder: "contato@morauto.com.br", name: "email" },
-            { label: "Telefone", placeholder: "(11) 99999-0000", name: "phone" },
-            { label: "Endereço", placeholder: "Av. Principal, 1000 — São Paulo, SP", name: "address" },
+            { label: "Razão Social", placeholder: "Morauto Locadora de Veículos e Máquinas Ltda.", name: "companyName" },
+            { label: "CNPJ", placeholder: "22.994.313/0001-45", name: "cnpj" },
+            { label: "E-mail", placeholder: "morautolucadora@hotmail.com", name: "email" },
+            { label: "Telefone", placeholder: "(92) 3622-2883", name: "phone" },
+            { label: "Endereço", placeholder: "Av. Álvaro Maia, 176-A — Pres. Vargas, Manaus-AM", name: "address" },
             { label: "Site", placeholder: "https://morauto.com.br", name: "website" },
           ].map((f) => (
             <div key={f.name} className="grid grid-cols-3 gap-4 items-center">
@@ -59,7 +59,7 @@ export default function ConfigPage() {
         <div className="space-y-4">
           {[
             { label: "Resend API Key (Email)", placeholder: "re_...", name: "RESEND_API_KEY", env: true },
-            { label: "WhatsApp número", placeholder: "5511999990000", name: "whatsappNumber" },
+            { label: "WhatsApp número", placeholder: "5592992921946", name: "whatsappNumber" },
           ].map((f) => (
             <div key={f.name} className="grid grid-cols-3 gap-4 items-center">
               <label className="text-zinc-400 text-sm col-span-1">

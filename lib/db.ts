@@ -1,17 +1,9 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const prismaClientSingleton = () => {
-  if (!process.env.DATABASE_URL) {
-    process.env.DATABASE_URL = "postgresql://dummy:dummy@localhost:5432/mydb";
-  }
-  return new PrismaClient({
-    // @ts-ignore
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-  } as any);
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  return new PrismaClient({ adapter });
 };
 
 declare global {

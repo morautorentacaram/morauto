@@ -7,14 +7,8 @@ export async function getInspections() {
   return db.inspection.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      vehicle: { include: { category: true } },
-      contract: {
-        include: {
-          reservation: {
-            include: { customer: { include: { user: true } } },
-          },
-        },
-      },
+      vehicle: true,
+      contract: { select: { id: true, number: true } },
     },
   })
 }
@@ -68,7 +62,7 @@ export async function createInspection(formData: FormData) {
         documentsOk,
         spareTireOk,
         jackOk,
-        photos: [],
+        photos: (formData.get("photos") as string ?? "").split(",").filter(Boolean),
       },
     })
 

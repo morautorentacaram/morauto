@@ -1,32 +1,45 @@
 import { getReservations } from "@/app/actions/reservation.actions"
 import { generateRentalContract } from "@/app/actions/contract.actions"
+import { getCustomers } from "@/app/actions/customer.actions"
+import { getAvailableVehicles } from "@/app/actions/vehicle.actions"
 import { formatCurrency } from "@/lib/utils"
 import StatusSelector from "@/components/admin/StatusSelector"
+import ReservationNewButton from "@/components/admin/ReservationNewButton"
+import ReservationActions from "@/components/admin/ReservationActions"
+import ReservationSearch from "@/components/admin/ReservationSearch"
 import Link from "next/link"
 import {
-  CalendarDays, Car, UserCircle, FileText, CheckCircle2,
-  Clock, AlertCircle, XCircle, TrendingUp, DollarSign,
+  CalendarDays, Car, FileText,
+  DollarSign, AlertCircle,
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Reservas — Morauto Admin" }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDING:   { label: "Pendente",   color: "text-amber-400 bg-amber-400/10 border-amber-400/20",    icon: <Clock size={11} /> },
-  CONFIRMED: { label: "Confirmada", color: "text-blue-400 bg-blue-400/10 border-blue-400/20",        icon: <CheckCircle2 size={11} /> },
-  ACTIVE:    { label: "Ativa",      color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", icon: <TrendingUp size={11} /> },
-  COMPLETED: { label: "Concluída",  color: "text-purple-400 bg-purple-400/10 border-purple-400/20",  icon: <CheckCircle2 size={11} /> },
-  CANCELLED: { label: "Cancelada",  color: "text-red-400 bg-red-400/10 border-red-400/20",           icon: <XCircle size={11} /> },
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  PENDING:   { label: "Pendente",   color: "text-amber-400 bg-amber-400/10 border-amber-400/20" },
+  CONFIRMED: { label: "Confirmada", color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
+  ACTIVE:    { label: "Ativa",      color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
+  COMPLETED: { label: "Concluída",  color: "text-purple-400 bg-purple-400/10 border-purple-400/20" },
+  CANCELLED: { label: "Cancelada",  color: "text-red-400 bg-red-400/10 border-red-400/20" },
 }
 
-export default async function ReservationsPage() {
-  const reservations = await getReservations()
+export default async function ReservationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>
+}) {
+  const { q = "", status = "" } = await searchParams
+
+  const [reservations, customers, vehicles] = await Promise.all([
+    getReservations({ search: q, status }),
+    getCustomers(),
+    getAvailableVehicles(),
+  ])
 
   const pending   = reservations.filter((r) => r.status === "PENDING").length
   const confirmed = reservations.filter((r) => r.status === "CONFIRMED").length
   const active    = reservations.filter((r) => r.status === "ACTIVE").length
-  const completed = reservations.filter((r) => r.status === "COMPLETED").length
-
   const totalRevenue = reservations
     .filter((r) => r.status === "COMPLETED")
     .reduce((acc, r) => acc + Number(r.totalValue), 0)
@@ -38,10 +51,16 @@ export default async function ReservationsPage() {
 
   return (
     <div className="space-y-8 p-6">
-      <div>
-        <h2 className="text-3xl font-outfit font-bold text-white tracking-tight">Reservas e Locações</h2>
-        <p className="text-zinc-400 mt-2">Acompanhe, gerencie e controle todas as locações da frota.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-3xl font-outfit font-bold text-white tracking-tight">Reservas e Locações</h2>
+          <p className="text-zinc-400 mt-2">Crie, edite e gerencie todas as locações da frota.</p>
+        </div>
+        <ReservationNewButton customers={customers} vehicles={vehicles} />
       </div>
+
+      {/* Search + filters */}
+      <ReservationSearch currentSearch={q} currentStatus={status} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -67,7 +86,6 @@ export default async function ReservationsPage() {
         </div>
       </div>
 
-      {/* Alerts */}
       {overdueCount > 0 && (
         <div className="flex items-center gap-3 bg-red-900/20 border border-red-700/40 rounded-xl px-5 py-3 text-red-300 text-sm">
           <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
@@ -88,14 +106,14 @@ export default async function ReservationsPage() {
                 <th className="px-5 py-3 font-medium">Pgto</th>
                 <th className="px-5 py-3 font-medium">Contrato</th>
                 <th className="px-5 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 font-medium text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
               {reservations.map((r) => {
-                const cfg = STATUS_CONFIG[r.status] ?? STATUS_CONFIG["PENDING"]
-                const payment = (r as any).payments?.[0]
+                const payment   = (r as any).payments?.[0]
                 const isOverdue = r.status === "ACTIVE" && new Date(r.endDate) < today
-                const daysLeft = Math.ceil((new Date(r.endDate).getTime() - today.getTime()) / 86400000)
+                const daysLeft  = Math.ceil((new Date(r.endDate).getTime() - today.getTime()) / 86400000)
 
                 return (
                   <tr key={r.id} className={`hover:bg-zinc-800/30 transition-colors ${isOverdue ? "bg-red-950/10" : ""}`}>
@@ -156,50 +174,42 @@ export default async function ReservationsPage() {
                           <DollarSign size={10} />
                           {payment.status === "PAID" ? "Pago" : "Pendente"}
                         </span>
-                      ) : (
-                        <span className="text-zinc-600 text-xs">—</span>
-                      )}
+                      ) : <span className="text-zinc-600 text-xs">—</span>}
                     </td>
 
                     {/* Contrato */}
                     <td className="px-5 py-4">
                       {r.contract ? (
-                        <Link
-                          href={`/admin/contratos/${r.contract.id}`}
-                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-400/10 border border-blue-400/20 px-2 py-1 rounded-lg transition-colors"
-                        >
-                          <FileText size={11} />
-                          {r.contract.number}
+                        <Link href={`/admin/contratos/${r.contract.id}`}
+                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-400/10 border border-blue-400/20 px-2 py-1 rounded-lg transition-colors">
+                          <FileText size={11} /> {r.contract.number}
                         </Link>
                       ) : r.status !== "CANCELLED" ? (
-                        <form action={async () => {
-                          "use server"
-                          await generateRentalContract(r.id)
-                        }}>
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-2 py-1 rounded-lg transition-colors"
-                          >
-                            <FileText size={11} />
-                            Gerar
+                        <form action={async () => { "use server"; await generateRentalContract(r.id) }}>
+                          <button type="submit"
+                            className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-2 py-1 rounded-lg transition-colors">
+                            <FileText size={11} /> Gerar
                           </button>
                         </form>
-                      ) : (
-                        <span className="text-zinc-600 text-xs">—</span>
-                      )}
+                      ) : <span className="text-zinc-600 text-xs">—</span>}
                     </td>
 
                     {/* Status */}
                     <td className="px-5 py-4">
                       <StatusSelector id={r.id} currentStatus={r.status} />
                     </td>
+
+                    {/* Ações */}
+                    <td className="px-5 py-4">
+                      <ReservationActions reservation={r} />
+                    </td>
                   </tr>
                 )
               })}
               {reservations.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
-                    Nenhuma reserva registrada.
+                  <td colSpan={8} className="px-6 py-12 text-center text-zinc-500">
+                    Nenhuma reserva registrada. Clique em "Nova Reserva" para começar.
                   </td>
                 </tr>
               )}

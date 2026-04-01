@@ -134,6 +134,45 @@ export async function getCustomerById(id: string) {
   })
 }
 
+export async function updateCustomer(id: string, formData: FormData) {
+  try {
+    const name = formData.get("name") as string
+    const phone = formData.get("phone") as string
+    const cnh = formData.get("cnh") as string
+    const cnhExpirationRaw = formData.get("cnhExpiration") as string
+
+    const customer = await db.customer.findUnique({ where: { id }, include: { user: true } })
+    if (!customer) return { error: "Cliente não encontrado." }
+
+    await db.user.update({
+      where: { id: customer.userId },
+      data: { name },
+    })
+
+    const cnhUrl = formData.get("cnhUrl") as string | null
+    const addressProofUrl = formData.get("addressProofUrl") as string | null
+
+    const updateData: Record<string, unknown> = {
+      phone: phone ? phone.replace(/\D/g, "") : null,
+      cnh: cnh ? cnh.replace(/\D/g, "") : null,
+      cnhExpiration: cnhExpirationRaw ? new Date(cnhExpirationRaw) : null,
+    }
+    if (cnhUrl) updateData.cnhUrl = cnhUrl
+    if (addressProofUrl) updateData.addressProofUrl = addressProofUrl
+
+    await db.customer.update({
+      where: { id },
+      data: updateData,
+    })
+
+    revalidatePath("/admin/clientes")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao atualizar cliente." }
+  }
+}
+
 export async function deleteCustomer(id: string) {
   try {
     const resCount = await db.reservation.count({ where: { customerId: id } });

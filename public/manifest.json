@@ -1,0 +1,22 @@
+{
+  "name": "Morauto — Locadora de Veículos",
+  "short_name": "Morauto",
+  "description": "Alugue veículos premium, acompanhe suas locações e contratos.",
+  "start_url": "/minha-conta",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#d4a017",
+  "categories": ["travel", "utilities"],
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" }
+  ],
+  "shortcuts": [
+    { "name": "Minha Conta", "url": "/minha-conta", "description": "Área do cliente" },
+    { "name": "Reservas", "url": "/minhas-reservas", "description": "Minhas locações" },
+    { "name": "Frota", "url": "/frota", "description": "Carros disponíveis" }
+  ]
+}

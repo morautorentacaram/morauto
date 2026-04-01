@@ -6,7 +6,7 @@ import Link from "next/link"
 import {
   Car, ShieldCheck, Clock, CheckCircle2, Search,
   ChevronRight, Star, ArrowRight, Smartphone,
-  FileSignature, KeyRound, RotateCcw
+  FileSignature, KeyRound, RotateCcw, MessageCircle, MapPin
 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
@@ -25,49 +25,72 @@ export default async function Home() {
       <Navbar session={session} />
 
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black text-white px-6">
+      <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-black text-white px-4 md:px-6">
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-zinc-900 to-black opacity-80" />
         <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80')] bg-cover bg-center" />
 
-        <div className="container relative z-10 mx-auto text-center pt-10">
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-zinc-400 mb-8 backdrop-blur-sm">
+        <div className="container relative z-10 mx-auto text-center pt-6 md:pt-10">
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-zinc-400 mb-6 md:mb-8 backdrop-blur-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Frota disponível agora
           </div>
 
-          <h1 className="text-5xl md:text-8xl font-black mb-6 tracking-tighter uppercase font-outfit leading-none">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black mb-4 md:mb-6 tracking-tighter uppercase font-outfit leading-[1.05]">
             A Experiência <span className="text-[#d4a017]">Premium</span><br />de Locação.
           </h1>
-          <p className="text-xl md:text-2xl text-zinc-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-            Frota exclusiva, vistoria digital e contratos inteligentes. Mobilidade sem atrito para quem exige o melhor.
+          <p className="text-base md:text-2xl text-zinc-400 mb-8 md:mb-12 max-w-2xl mx-auto font-light leading-relaxed px-2">
+            Frota exclusiva, vistoria digital e contratos inteligentes.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link href="/frota" className="px-8 py-4 rounded-full font-bold bg-[#d4a017] text-black hover:bg-[#b8860b] hover:shadow-lg hover:shadow-[#d4a017]/30 flex items-center gap-2 text-lg transition-all">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center mb-8 md:mb-16 px-2">
+            <Link href="/frota" className="w-full sm:w-auto px-8 py-4 rounded-full font-bold bg-[#d4a017] text-black hover:bg-[#b8860b] hover:shadow-lg hover:shadow-[#d4a017]/30 flex items-center justify-center gap-2 text-base md:text-lg transition-all active:scale-95">
               Reservar Agora <ChevronRight size={20} />
             </Link>
-            <Link href="/como-funciona" className="px-8 py-4 rounded-full font-semibold border border-white/20 bg-white/5 backdrop-blur-sm transition-all hover:bg-white/10 text-lg">
+            <Link href="/como-funciona" className="w-full sm:w-auto px-8 py-4 rounded-full font-semibold border border-white/20 bg-white/5 backdrop-blur-sm transition-all hover:bg-white/10 text-base md:text-lg text-center active:scale-95">
               Como Funciona
             </Link>
           </div>
 
           {/* Quick Search */}
-          <form action="/frota" method="GET" className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-2xl flex flex-col md:flex-row gap-3 items-end">
-            <div className="flex-1 space-y-1 w-full text-left">
-              <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Cidade</label>
-              <input name="city" type="text" placeholder="São Paulo, SP" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 placeholder:text-zinc-600 outline-none focus:border-[#d4a017]/50 transition-all text-sm" />
+          <form action="/frota" method="GET" className="w-full max-w-3xl mx-auto bg-black/60 backdrop-blur-2xl border border-white/10 p-3 md:p-4 rounded-2xl shadow-2xl">
+            {/* Mobile: stacked layout */}
+            <div className="flex flex-col gap-2 md:hidden">
+              <div className="text-left">
+                <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold ml-1 block mb-1">Cidade</label>
+                <input name="city" type="text" placeholder="Manaus, AM" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 placeholder:text-zinc-600 outline-none focus:border-[#d4a017]/50 transition-all text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-left">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold ml-1 block mb-1">Retirada</label>
+                  <input name="date" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
+                </div>
+                <div className="text-left">
+                  <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold ml-1 block mb-1">Devolução</label>
+                  <input name="endDate" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
+                </div>
+              </div>
+              <button type="submit" className="w-full py-3.5 rounded-xl bg-[#d4a017] text-black font-bold hover:bg-[#b8860b] transition-all flex items-center justify-center gap-2 active:scale-95">
+                <Search size={18} /> Buscar Veículos
+              </button>
             </div>
-            <div className="flex-1 space-y-1 w-full text-left">
-              <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Retirada</label>
-              <input name="date" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
+            {/* Desktop: row layout */}
+            <div className="hidden md:flex gap-3 items-end">
+              <div className="flex-1 space-y-1 text-left">
+                <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Cidade</label>
+                <input name="city" type="text" placeholder="São Paulo, SP" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 placeholder:text-zinc-600 outline-none focus:border-[#d4a017]/50 transition-all text-sm" />
+              </div>
+              <div className="flex-1 space-y-1 text-left">
+                <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Retirada</label>
+                <input name="date" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
+              </div>
+              <div className="flex-1 space-y-1 text-left">
+                <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Devolução</label>
+                <input name="endDate" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
+              </div>
+              <button type="submit" className="px-8 py-3 rounded-xl bg-[#d4a017] text-black font-bold hover:bg-[#b8860b] transition-all flex items-center justify-center gap-2 h-[50px] flex-shrink-0">
+                <Search size={18} /> Buscar
+              </button>
             </div>
-            <div className="flex-1 space-y-1 w-full text-left">
-              <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold ml-1 block">Devolução</label>
-              <input name="endDate" type="date" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-[#d4a017]/50 transition-all text-sm" style={{ colorScheme: "dark" }} />
-            </div>
-            <button type="submit" className="w-full md:w-auto px-8 py-3 rounded-xl bg-[#d4a017] text-black font-bold hover:bg-[#b8860b] transition-all flex items-center justify-center gap-2 h-[50px] flex-shrink-0">
-              <Search size={18} /> Buscar
-            </button>
           </form>
         </div>
       </section>
@@ -211,6 +234,85 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Location / Google Maps */}
+      <section className="py-24 bg-black px-6">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 className="text-[#d4a017] font-bold uppercase tracking-widest text-sm mb-4">Onde Estamos</h3>
+              <h2 className="text-4xl md:text-5xl font-black font-outfit mb-6">Visite nossa Sede <br/> Pres. Vargas</h2>
+              <p className="text-zinc-400 text-lg mb-8 leading-relaxed">
+                Estamos estrategicamente localizados na Avenida Álvaro Maia, prontos para oferecer a melhor experiência em locação de veículos premium de Manaus.
+              </p>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-[#d4a017] flex-shrink-0">
+                    <MapPin size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">Endereço</h4>
+                    <p className="text-zinc-500 text-sm">Av. Álvaro Maia, 176-A — Pres. Vargas<br/>CEP 69025-360 — Manaus-AM</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-[#d4a017] flex-shrink-0">
+                    <Clock size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">Horário de Funcionamento</h4>
+                    <p className="text-zinc-500 text-sm">Segunda a Sexta: 08:00 às 18:00<br/>Sábado: 08:00 às 12:00</p>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <a 
+                    href="https://www.google.com/maps/search/?api=1&query=Av.+%C3%81lvaro+Maia,+176-A+-+Pres.+Vargas,+Manaus+-+AM,+69025-360"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#d4a017]/50 hover:bg-white/10 transition-all font-bold text-sm text-white group"
+                  >
+                    <MapPin size={18} className="text-[#d4a017] group-hover:scale-110 transition-transform" />
+                    Abrir no Google Maps
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div className="h-[450px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group/map">
+              {/* Gold Focal Circle Overlay with MapPin Icon */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-2 border-[#d4a017] opacity-60 animate-ping absolute -inset-6"></div>
+                  <div className="bg-black/60 backdrop-blur-sm p-3 rounded-2xl border border-[#d4a017] shadow-[0_0_30px_rgba(212,160,23,0.6)] group-hover/map:scale-110 transition-transform duration-500">
+                    <MapPin size={32} className="text-[#d4a017] fill-[#d4a017]/20" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Premium Badge over map */}
+              <div className="absolute top-6 left-6 z-10 bg-black/80 backdrop-blur-md border border-[#d4a017]/30 px-4 py-2 rounded-xl flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#d4a017] shadow-[0_0_8px_#d4a017]"></div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#d4a017]">Localização Premium</span>
+              </div>
+
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.921345479024!2d-60.0267396!3d-3.111812!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x926c0ff6715f3cbd%3A0x64cf517e657c7e99!2sAv.%20%C3%81lvaro%20Maia%2C%20176a%20-%20Nossa%20Sra.%20das%20Gracas%2C%20Manaus%20-%20AM%2C%2069025-010!5e0!3m2!1spt-BR!2sbr!4v1711815000000!5m2!1spt-BR!2sbr"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="opacity-70 group-hover/map:opacity-100 transition-opacity duration-700 grayscale group-hover/map:grayscale-0"
+              ></iframe>
+              <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 rounded-3xl"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 bg-[#d4a017] px-6">
         <div className="container mx-auto text-center">
@@ -225,6 +327,21 @@ export default async function Home() {
       </section>
 
       <Footer />
+
+      {/* Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/5592992921946"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-20 md:bottom-8 right-4 md:right-6 z-40 bg-[#25D366] text-white p-3.5 md:p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all group animate-bounce-slow"
+        aria-label="Falar no WhatsApp"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <MessageCircle size={24} className="fill-white/10" />
+        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-white text-black text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-zinc-100 hidden md:block">
+          Precisa de ajuda?
+        </span>
+      </a>
     </div>
   )
 }

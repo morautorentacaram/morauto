@@ -1,7 +1,9 @@
 import { getCustomers } from "@/app/actions/customer.actions"
 import { blockCustomer, unblockCustomer } from "@/app/actions/customer.actions"
 import CustomerForm from "@/components/admin/CustomerForm"
-import { Users, FileText, ShieldOff, ShieldCheck, Eye } from "lucide-react"
+import CustomerActions from "@/components/admin/CustomerActions"
+import CustomersPdfButton from "@/components/admin/CustomersPdfButton"
+import { ShieldOff, ShieldCheck, Eye } from "lucide-react"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
@@ -15,9 +17,12 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-8 p-6">
-      <div>
-        <h2 className="text-3xl font-outfit font-bold text-white tracking-tight">Gestão de Clientes</h2>
-        <p className="text-zinc-400 mt-2">Cadastre e gerencie clientes PF e PJ da sua locadora.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-outfit font-bold text-white tracking-tight">Gestão de Clientes</h2>
+          <p className="text-zinc-400 mt-2">Cadastre e gerencie clientes PF e PJ da sua locadora.</p>
+        </div>
+        <CustomersPdfButton customers={customers} />
       </div>
 
       {/* Stats */}
@@ -113,6 +118,7 @@ export default async function CustomersPage() {
                               </button>
                             </form>
                           )}
+                          <CustomerActions customer={c} />
                         </div>
                       </td>
                     </tr>

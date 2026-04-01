@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic"
 export const metadata = { title: "Vistoria — Morauto Admin" }
 
 export default async function InspectionPage() {
-  const [inspections, contracts] = await Promise.all([getInspections(), getContracts()])
+  const inspections = await getInspections()
+  const contracts   = await getContracts()
 
   const formContracts = contracts.map((c) => ({
     id: c.id,

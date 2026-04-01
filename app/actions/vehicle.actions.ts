@@ -20,6 +20,14 @@ export async function getVehicles() {
   }
 }
 
+export async function getAvailableVehicles() {
+  return db.vehicle.findMany({
+    where: { status: "AVAILABLE" },
+    include: { category: true },
+    orderBy: [{ brand: "asc" }, { model: "asc" }],
+  })
+}
+
 export async function getVehicleById(id: string) {
   try {
     return await db.vehicle.findUnique({
@@ -34,6 +42,9 @@ export async function getVehicleById(id: string) {
 
 export async function createVehicle(formData: FormData) {
   try {
+    const photosRaw = formData.get("photos") as string
+    const photos = photosRaw ? photosRaw.split(",").filter(Boolean) : []
+
     const data = {
       model: formData.get("model") as string,
       brand: formData.get("brand") as string,
@@ -47,6 +58,7 @@ export async function createVehicle(formData: FormData) {
       fuelType: formData.get("fuelType") as string,
       transmission: formData.get("transmission") as string,
       categoryId: formData.get("categoryId") as string,
+      photos,
     };
 
     if (!data.model || !data.brand || !data.plate || !data.renavam || !data.chassi || !data.categoryId) {

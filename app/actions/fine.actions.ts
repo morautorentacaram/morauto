@@ -28,6 +28,8 @@ export async function createFine(formData: FormData) {
     const conductorName = formData.get("conductorName") as string
     const agencyName = formData.get("agencyName") as string
     const reservationId = formData.get("reservationId") as string
+    const photosRaw = formData.get("photos") as string
+    const photos = photosRaw ? photosRaw.split(",").filter(Boolean) : []
 
     if (!vehicleId || !amount || !date || !infractionCode || !description) {
       return { error: "Preencha todos os campos obrigatórios." }
@@ -44,6 +46,7 @@ export async function createFine(formData: FormData) {
         conductorName: conductorName || null,
         agencyName: agencyName || null,
         reservationId: reservationId || null,
+        photos,
         status: "PENDING",
       },
     })

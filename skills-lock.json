@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "skills": {
+    "sentry-browser-sdk": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "7e2c56fe818a39bc283cbc794bf37e95bb0fc83a79d0ff6b97ade2158ecd7185"
+    },
+    "sentry-create-alert": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "db9114eb711176051edf942474672f85d59b4b50cad12a29a566292e57d7b7c4"
+    },
+    "sentry-feature-setup": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "45f63a8e3338a2a6a286175b50c6019f02c9d94fd02912bb5d94950896014953"
+    },
+    "sentry-fix-issues": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "d8f04b1844eb6ae5721d58507a69be1f880a7cd231560de5097b3e40d8d11e1c"
+    },
+    "sentry-nextjs-sdk": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "659d1f05c601070066307423f29ba783e69c05adcf415e7a67ff1a68f200e2dc"
+    },
+    "sentry-sdk-setup": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "5a964ec81aa652b3eb1604002b63fe4a1b242126406f7160d839946c373e2bbe"
+    },
+    "sentry-setup-ai-monitoring": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "127bd15a8bc78a7807c3b3c42c5aed2f25ce99a0aa0d647d2ca1a5a037f0e408"
+    },
+    "sentry-workflow": {
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github",
+      "computedHash": "3384bbf87660a1e633ad72e56f0fb520c4d93956e41eb4ef8d70187a29955fb8"
+    }
+  }
+}

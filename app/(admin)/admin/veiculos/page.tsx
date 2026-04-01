@@ -2,6 +2,7 @@ import { getVehicles, deleteVehicle } from "@/app/actions/vehicle.actions";
 import { getCategories } from "@/app/actions/category.actions";
 import VehicleForm from "@/components/admin/VehicleForm";
 import { Trash2, CarFront } from "lucide-react";
+import Image from "next/image";
 
 export const metadata = {
   title: "Gerenciar Frota - Morauto Admin",
@@ -43,8 +44,12 @@ export default async function VehiclesPage() {
                   {vehicles.map((vehicle) => (
                     <tr key={vehicle.id} className="hover:bg-zinc-800/30 transition-colors group">
                       <td className="px-6 py-4 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <CarFront className="w-5 h-5 text-amber-500" />
+                        <div className="w-14 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0 overflow-hidden border border-zinc-700">
+                          {vehicle.photos?.[0] ? (
+                            <Image src={vehicle.photos[0]} alt={vehicle.model} width={56} height={40} className="object-cover w-full h-full" unoptimized />
+                          ) : (
+                            <CarFront className="w-5 h-5 text-zinc-600" />
+                          )}
                         </div>
                         <div>
                           <div className="text-white font-medium">{vehicle.brand} {vehicle.model}</div>

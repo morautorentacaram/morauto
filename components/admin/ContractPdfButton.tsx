@@ -1,0 +1,338 @@
+"use client"
+
+import { useState } from "react"
+import { FileDown, Loader2 } from "lucide-react"
+
+type Props = { contract: any }
+
+export default function ContractPdfButton({ contract }: Props) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleExport() {
+    setLoading(true)
+    try {
+      const { default: jsPDF }    = await import("jspdf")
+      const { default: autoTable } = await import("jspdf-autotable")
+
+      const { reservation, customer } = contract
+      const { vehicle } = reservation
+      const payment = reservation.payments?.[0]
+
+      const doc  = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+      const W    = doc.internal.pageSize.getWidth()
+      const H    = doc.internal.pageSize.getHeight()
+      const gold  = [212, 160, 23]  as [number, number, number]
+      const dark  = [24,  24,  27]  as [number, number, number]
+      const gray  = [113, 113, 122] as [number, number, number]
+      const white = [255, 255, 255] as [number, number, number]
+      const black = [0,   0,   0]   as [number, number, number]
+      const ink   = [30,  30,  30]  as [number, number, number]
+
+      const fmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
+      const fmtDate = (d: string | Date) => new Date(d).toLocaleDateString("pt-BR")
+      const fmtDateTime = (d: string | Date) => {
+        const dt = new Date(d)
+        return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h ${fmtDate(dt)}`
+      }
+
+      const days = Math.max(1, Math.ceil(
+        (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / 86400000
+      ))
+      const dailyRate    = Number(vehicle.category.dailyRate)
+      const totalValue   = Number(reservation.totalValue)
+      const depositValue = Number(vehicle.category.depositValue ?? 0)
+      const kmExcess     = 0.58
+
+      const paymentLabel =
+        payment?.status === "PAID"                 ? "PAGO"
+        : payment?.method === "PIX"                ? "PIX"
+        : payment?.method === "CREDIT_CARD"        ? "Cartão de Crédito"
+        : payment?.method === "DEBIT_CARD"         ? "Cartão de Débito"
+        : payment?.method === "CASH"               ? "Dinheiro"
+        : payment?.method === "BANK_TRANSFER"      ? "Transferência Bancária"
+        : "A combinar"
+
+      // ── Header ─────────────────────────────────────────────────────────────
+      doc.setFillColor(...dark)
+      doc.rect(0, 0, W, 30, "F")
+      doc.setFillColor(...gold)
+      doc.rect(0, 30, W, 1.2, "F")
+
+      // Logo text
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(22)
+      doc.setTextColor(...white)
+      doc.text("MORAUTO.", 14, 14)
+
+      doc.setFontSize(8)
+      doc.setFont("helvetica", "normal")
+      doc.setTextColor(...gray)
+      doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS", 14, 20)
+      doc.text("CNPJ: 22.994.313/0001-45", 14, 25.5)
+
+      // Contract number
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(9)
+      doc.setTextColor(...gold)
+      doc.text(contract.number, W - 14, 14, { align: "right" })
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(7)
+      doc.setTextColor(...gray)
+      doc.text(`Gerado em ${new Date(contract.createdAt).toLocaleDateString("pt-BR")}`, W - 14, 20, { align: "right" })
+      if (contract.signedAt) {
+        doc.setTextColor(34, 197, 94)
+        doc.text(`✓ Assinado em ${new Date(contract.signedAt).toLocaleDateString("pt-BR")}`, W - 14, 25.5, { align: "right" })
+      } else {
+        doc.setTextColor(251, 191, 36)
+        doc.text("Aguardando assinatura", W - 14, 25.5, { align: "right" })
+      }
+
+      // Title
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(13)
+      doc.setTextColor(...ink)
+      doc.text("CONTRATO DE LOCAÇÃO DE AUTOMÓVEL", W / 2, 40, { align: "center" })
+      doc.setFontSize(10)
+      doc.setFont("helvetica", "normal")
+      doc.setTextColor(...gray)
+      doc.text("DE PRAZO DETERMINADO", W / 2, 46, { align: "center" })
+
+      let y = 54
+
+      // ── Section helper ──────────────────────────────────────────────────────
+      function sectionTitle(title: string) {
+        doc.setFillColor(245, 245, 245)
+        doc.rect(14, y - 4, W - 28, 7, "F")
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(8)
+        doc.setTextColor(...dark)
+        doc.text(title.toUpperCase(), 16, y)
+        y += 5
+      }
+
+      function field(label: string, value: string, x = 14, indent = 0) {
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(7.5)
+        doc.setTextColor(...gray)
+        doc.text(label + ":", x + indent, y)
+        doc.setFont("helvetica", "normal")
+        doc.setTextColor(...ink)
+        const labelW = doc.getTextWidth(label + ":") + 2
+        doc.text(value || "—", x + indent + labelW, y)
+        y += 5
+      }
+
+      // ── Partes ──────────────────────────────────────────────────────────────
+      sectionTitle("Locadora")
+      field("Razão Social", "MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA")
+      field("CNPJ", "22.994.313/0001-45")
+      field("Endereço", "Av. Álvaro Maia, N.176-A, Pres. Vargas, CEP 69025-360, Manaus-AM")
+      field("Telefone", "(92) 3622-2883 / 99292-1946")
+      y += 2
+
+      sectionTitle("Locatário")
+      field("Nome", String(customer.user.name ?? "").toUpperCase())
+      field("CPF/CNPJ", customer.document)
+      field("Telefone", customer.phone ?? "—")
+      field("Endereço", customer.address ?? "—")
+      field("CNH", customer.cnh ?? "—", 14)
+      y += 2
+
+      // ── Objeto ──────────────────────────────────────────────────────────────
+      sectionTitle("Do Objeto do Contrato — Veículo")
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Campo", "Valor", "Campo", "Valor"]],
+        body: [
+          ["Marca/Modelo", `${vehicle.brand} ${vehicle.model}${vehicle.version ? " " + vehicle.version : ""}`, "Categoria", vehicle.category.name],
+          ["Ano", String(vehicle.year), "Cor", vehicle.color ?? "—"],
+          ["Placa", vehicle.plate, "RENAVAM", vehicle.renavam ?? "—"],
+          ["Chassi", vehicle.chassi ?? "—", "KM Saída", `${(vehicle.km ?? 0).toLocaleString("pt-BR")} km`],
+        ],
+        theme: "grid",
+        headStyles: { fillColor: gold, textColor: black, fontStyle: "bold", fontSize: 7.5 },
+        bodyStyles: { fontSize: 7.5, textColor: ink as any },
+        columnStyles: { 0: { fontStyle: "bold", fillColor: [248,248,248], cellWidth: 32 }, 2: { fontStyle: "bold", fillColor: [248,248,248], cellWidth: 32 } },
+        styles: { cellPadding: 2.5 },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc as any).lastAutoTable.finalY + 4
+
+      // ── Período e Valores ───────────────────────────────────────────────────
+      sectionTitle("Período, Valores e Condições Financeiras")
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Campo", "Valor"]],
+        body: [
+          ["Retirada",        fmtDateTime(reservation.startDate)],
+          ["Devolução",       fmtDateTime(reservation.endDate)],
+          ["Duração",         `${days} dia(s)`],
+          ["Diária",          fmt(dailyRate)],
+          ["Valor Total",     fmt(totalValue)],
+          ...(depositValue > 0 ? [["Caução/Garantia", fmt(depositValue)]] : []),
+          ["Forma de Pagamento", paymentLabel],
+          ["Franquia km/dia", "214,28 km/dia"],
+          ["Km excedente",    `${fmt(kmExcess)} por km`],
+          ["Limite semanal",  "1.500 km/semana"],
+          ["Taxa administrativa", "10% sobre serviços adicionais"],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: gold, textColor: black, fontStyle: "bold", fontSize: 7.5 },
+        bodyStyles: { fontSize: 7.5, textColor: ink as any },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 55 }, 1: { cellWidth: 100 } },
+        styles: { cellPadding: 2.5 },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc as any).lastAutoTable.finalY + 4
+
+      // ── Cláusulas ──────────────────────────────────────────────────────────
+      if (y > 220) { doc.addPage(); y = 20 }
+      sectionTitle("Normas e Cláusulas Gerais")
+
+      const clauses = [
+        { n: "1.", t: "REABASTECIMENTO", b: "No caso de devolução do veículo com quantidade de combustível inferior à registrada no momento de entrega, o tanque será completado com gasolina (mesmo que bicombustível), sendo o valor do abastecimento e taxas cobrados no contrato. O combustível gasto no percurso até o local de entrega é de responsabilidade do cliente." },
+        { n: "2.", t: "LIMPEZA DO VEÍCULO", b: "Deverá ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 35,00. Em caso de manchas ou odores: higienização a partir de R$ 150,00 ou valor superior." },
+        { n: "3.", t: "DOCUMENTOS PERDIDOS", b: "Caso não devolvidos junto com o veículo: custo de R$ 250,00 + 3 diárias de locação." },
+        { n: "4.", t: "VEÍCULO REBOCADO", b: "Retirada de veículo rebocado: R$ 500,00 + custos de multa e reboque, em casos de culpabilidade do condutor." },
+        { n: "5.", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 30,00 por evento." },
+        { n: "6.", t: "CHAVE DO VEÍCULO", b: "O desaparecimento da chave terá reposição cobrada conforme modelo (chave codificada ou integrada com alarme)." },
+        { n: "7.", t: "HORAS EXTRAS", b: "A diária é de 24 horas. Hora extra = 1/6 da diária. Após a 6ª hora extra, cobra-se diária integral. Proteções e serviços adicionais incidem integralmente." },
+        { n: "8.", t: "RESPONSABILIDADE POR MULTAS", b: "O Locatário é responsável por todas as multas de trânsito incidentes durante o período de locação, nos termos do art. 257 do CTB." },
+        { n: "9.", t: "SUBLOCAÇÃO PROIBIDA", b: "É expressamente proibida a sublocação total ou parcial do veículo, bem como sua utilização para fins ilícitos ou transporte remunerado sem autorização escrita." },
+        { n: "10.", t: "RESTRIÇÃO TERRITORIAL", b: "VEÍCULO NÃO AUTORIZADO A ULTRAPASSAR A FRONTEIRA BRASIL/VENEZUELA — uso restrito à cidade de Manaus-AM, salvo autorização expressa por escrito." },
+      ]
+
+      const clauseBody = clauses.map((c) => [`${c.n} ${c.t}`, c.b])
+      autoTable(doc, {
+        startY: y,
+        body: clauseBody,
+        theme: "plain",
+        bodyStyles: { fontSize: 7, textColor: ink as any, cellPadding: [1.5, 2.5] },
+        columnStyles: { 0: { fontStyle: "bold", cellWidth: 42, fillColor: [248,248,248] } },
+        styles: { lineColor: [220,220,220], lineWidth: 0.2 },
+        margin: { left: 14, right: 14 },
+      })
+      y = (doc as any).lastAutoTable.finalY + 4
+
+      // ── Exclusão de Proteção ───────────────────────────────────────────────
+      if (y > 220) { doc.addPage(); y = 20 }
+      sectionTitle("Exclusão da Proteção")
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(7)
+      doc.setTextColor(...ink)
+      const exclusaoText = `O Locatário é 100% responsável por qualquer dano, roubo, furto ou assistência. Será responsável pelo total dos danos independente de culpa, na eventualidade de: a) Uso Indevido. b) Danos aos vidros, rodas, bancos e/ou acessórios. c) Dirigir em violação de qualquer lei de trânsito. d) Permitir uso por motorista adicional não autorizado por escrito. e) O cliente está ciente que o veículo NÃO possui seguro. f) O locatário é responsável pela manutenção do veículo.`
+      const exclusaoLines = doc.splitTextToSize(exclusaoText, W - 28)
+      doc.text(exclusaoLines, 14, y)
+      y += exclusaoLines.length * 4 + 4
+
+      // ── Autorização de Débito ───────────────────────────────────────────────
+      if (y > 220) { doc.addPage(); y = 20 }
+      sectionTitle("Autorização de Débito")
+      const autorizacaoText = `Como cliente titular, autorizo a MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA — CNPJ 22.994.313/0001-45 — a debitar nos meus cartões de crédito/débito ou emitir cobrança em meu nome para reembolsar multas de trânsito, combustível, avarias, limpeza e outras despesas adicionais apontadas no check-list de devolução, acrescidas da taxa administrativa prevista neste contrato. Autorizo ainda a informar meus dados aos órgãos de trânsito como CONDUTOR(A) DO VEÍCULO LOCADO, nos termos da Resolução CONTRAN N.461/2013.`
+      const autLines = doc.splitTextToSize(autorizacaoText, W - 28)
+      doc.text(autLines, 14, y)
+      y += autLines.length * 4 + 4
+
+      // ── Foro ───────────────────────────────────────────────────────────────
+      if (y > 240) { doc.addPage(); y = 20 }
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(7.5)
+      doc.setTextColor(...ink)
+      doc.text("DO FORO:", 14, y)
+      doc.setFont("helvetica", "normal")
+      doc.text("Para dirimir quaisquer controvérsias, as partes elegem o foro da comarca de Manaus — Amazonas.", 14 + doc.getTextWidth("DO FORO: "), y)
+      y += 6
+
+      const cityDate = `Manaus, ${new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}`
+      doc.text(cityDate, W / 2, y, { align: "center" })
+      y += 12
+
+      // ── Assinaturas ─────────────────────────────────────────────────────────
+      if (y + 40 > H - 20) { doc.addPage(); y = 20 }
+
+      // Draw signature boxes
+      const boxW = (W - 42) / 2
+
+      // Left — Locadora
+      doc.setDrawColor(...gray)
+      doc.setLineWidth(0.3)
+      doc.line(14, y + 18, 14 + boxW, y + 18)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(7.5)
+      doc.setTextColor(...ink)
+      doc.text("MORAUTO LOCADORA DE VEÍCULOS", 14 + boxW / 2, y + 23, { align: "center" })
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(6.5)
+      doc.setTextColor(...gray)
+      doc.text("(LOCADORA)  CNPJ 22.994.313/0001-45", 14 + boxW / 2, y + 27, { align: "center" })
+
+      // Right — Locatário
+      const xR = W - 14 - boxW
+      doc.line(xR, y + 18, xR + boxW, y + 18)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(7.5)
+      doc.setTextColor(...ink)
+      doc.text(String(customer.user.name ?? "LOCATÁRIO").toUpperCase(), xR + boxW / 2, y + 23, { align: "center" })
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(6.5)
+      doc.setTextColor(...gray)
+      doc.text(`(LOCATÁRIO)  CPF/CNPJ: ${customer.document}`, xR + boxW / 2, y + 27, { align: "center" })
+
+      y += 35
+
+      // Witnesses
+      const wBoxW = (W - 42) / 2
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(7)
+      doc.setTextColor(...gray)
+      doc.line(14, y + 12, 14 + wBoxW, y + 12)
+      doc.text("(Nome, RG e assinatura da Testemunha 1)", 14 + wBoxW / 2, y + 16, { align: "center" })
+      doc.line(xR, y + 12, xR + wBoxW, y + 12)
+      doc.text("(Nome, RG e assinatura da Testemunha 2)", xR + wBoxW / 2, y + 16, { align: "center" })
+
+      y += 24
+
+      // Legal notes
+      doc.setFontSize(6.5)
+      doc.setTextColor(...gray)
+      doc.text("Nota: 1. A Locação de Coisas rege-se pelo previsto nos Arts. 1188 a 1215 do Código Civil.", 14, y)
+      y += 4
+      doc.text("2. Art. 1192 do Código Civil.   3. Art. 1196 do Código Civil.", 14, y)
+
+      // ── Footer all pages ──────────────────────────────────────────────────
+      const pageCount = (doc as any).internal.getNumberOfPages()
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.setFillColor(...dark)
+        doc.rect(0, H - 12, W, 12, "F")
+        doc.setFillColor(...gold)
+        doc.rect(0, H - 12, W, 0.8, "F")
+        doc.setFontSize(6.5)
+        doc.setFont("helvetica", "bold")
+        doc.setTextColor(...white)
+        doc.text("MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS EIRELI  ·  CNPJ: 22.994.313/0001-45", W / 2, H - 7, { align: "center" })
+        doc.setFont("helvetica", "normal")
+        doc.setTextColor(...gray)
+        doc.text("Av. Álvaro Maia 176-A, Presidente Vargas, CEP 69025-360, Manaus-AM  ·  (92) 3622-2883", W / 2, H - 3.5, { align: "center" })
+        doc.text(`Página ${i}/${pageCount}`, W - 6, H - 7, { align: "right" })
+      }
+
+      doc.save(`contrato-${contract.number}.pdf`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleExport}
+      disabled={loading}
+      className="flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-4 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60"
+    >
+      {loading ? <Loader2 size={15} className="animate-spin" /> : <FileDown size={15} />}
+      {loading ? "Gerando PDF..." : "Baixar Contrato PDF"}
+    </button>
+  )
+}

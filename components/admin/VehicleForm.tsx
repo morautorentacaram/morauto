@@ -1,98 +1,120 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { createVehicle } from "@/app/actions/vehicle.actions";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react"
+import { createVehicle } from "@/app/actions/vehicle.actions"
+import { useRouter } from "next/navigation"
+import { ImagePlus, X, Loader2, Upload } from "lucide-react"
+import Image from "next/image"
 
 export default function VehicleForm({ categories }: { categories: any[] }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [photos, setPhotos] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const router = useRouter()
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+    if (photos.length + files.length > 6) {
+      setError("Máximo de 6 fotos por veículo.")
+      return
+    }
+    setUploading(true)
+    setError("")
+    const uploaded: string[] = []
+    for (const file of files) {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (data.url) uploaded.push(data.url)
+      else setError(data.error ?? "Erro ao enviar foto.")
+    }
+    setPhotos((prev) => [...prev, ...uploaded])
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ""
+  }
+
+  function removePhoto(url: string) {
+    setPhotos((prev) => prev.filter((p) => p !== url))
+  }
 
   async function handleSubmit(formData: FormData) {
-    setLoading(true);
-    setError("");
-    const res = await createVehicle(formData);
-    
+    setLoading(true)
+    setError("")
+    formData.set("photos", photos.join(","))
+    const res = await createVehicle(formData)
     if (res?.error) {
-      setError(res.error);
-      setLoading(false);
+      setError(res.error)
+      setLoading(false)
     } else {
-      router.refresh();
-      setLoading(false);
-      const form = document.getElementById("vehicle-form") as HTMLFormElement;
-      form?.reset();
+      setPhotos([])
+      formRef.current?.reset()
+      router.refresh()
+      setLoading(false)
     }
   }
 
   return (
-    <form id="vehicle-form" action={handleSubmit} className="space-y-4 bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
+    <form id="vehicle-form" ref={formRef} action={handleSubmit} className="space-y-4 bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
       <h3 className="text-xl font-bold font-outfit text-white mb-4">Cadastrar Veículo</h3>
-      
+
       {error && <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-lg border border-red-900/50">{error}</div>}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Marca & Modelo */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Marca *</label>
-          <input name="brand" required placeholder="Ex: Volkswagen" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="brand" required placeholder="Ex: Volkswagen" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Modelo *</label>
-          <input name="model" required placeholder="Ex: Polo" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="model" required placeholder="Ex: Polo" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
-
-        {/* Versão & Categoria */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Versão</label>
-          <input name="version" placeholder="Ex: 1.0 MPI" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="version" placeholder="Ex: 1.0 MPI" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Categoria *</label>
-          <select name="categoryId" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500">
+          <select name="categoryId" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]">
             <option value="">Selecione...</option>
-            {categories.map(c => (
+            {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
-
-        {/* Placa & Ano */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Placa *</label>
-          <input name="plate" required placeholder="ABC1D23" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 uppercase" />
+          <input name="plate" required placeholder="ABC1D23" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017] uppercase" />
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Ano *</label>
-          <input name="year" type="number" required placeholder="Ex: 2024" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="year" type="number" required placeholder="2024" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
-
-        {/* Renavam & Chassi */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Renavam *</label>
-          <input name="renavam" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="renavam" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Chassi *</label>
-          <input name="chassi" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500 uppercase" />
+          <input name="chassi" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017] uppercase" />
         </div>
-
-        {/* Cor & KM */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Cor *</label>
-          <input name="color" required placeholder="Ex: Prata" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <input name="color" required placeholder="Ex: Prata" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400 font-medium">Quilometragem Inicial</label>
-          <input name="km" type="number" defaultValue="0" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500" />
+          <label className="text-sm text-zinc-400 font-medium">Quilometragem</label>
+          <input name="km" type="number" defaultValue="0" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]" />
         </div>
-
-        {/* Combustível & Transmissão */}
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Combustível *</label>
-          <select name="fuelType" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500">
-            <option value="FLEX">Flex (Etanol/Gasolina)</option>
-            <option value="GASOLINA">Apenas Gasolina</option>
+          <select name="fuelType" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]">
+            <option value="FLEX">Flex</option>
+            <option value="GASOLINA">Gasolina</option>
             <option value="DIESEL">Diesel</option>
             <option value="ELETRICO">Elétrico</option>
             <option value="HIBRIDO">Híbrido</option>
@@ -100,19 +122,67 @@ export default function VehicleForm({ categories }: { categories: any[] }) {
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Transmissão *</label>
-          <select name="transmission" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-amber-500">
+          <select name="transmission" required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]">
             <option value="MANUAL">Manual</option>
             <option value="AUTOMATICO">Automático</option>
           </select>
         </div>
       </div>
 
-      <button 
-        type="submit" 
-        disabled={loading}
-        className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-lg transition-colors mt-6 disabled:opacity-50"
+      {/* Photo upload */}
+      <div className="space-y-3 pt-2">
+        <label className="text-sm text-zinc-400 font-medium">Fotos do Veículo</label>
+
+        {/* Preview grid */}
+        {photos.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {photos.map((url, i) => (
+              <div key={url} className="relative group aspect-video rounded-lg overflow-hidden border border-zinc-700">
+                <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" unoptimized />
+                {i === 0 && (
+                  <span className="absolute top-1 left-1 bg-[#d4a017] text-black text-[10px] font-bold px-1.5 py-0.5 rounded">CAPA</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removePhoto(url)}
+                  className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Upload button */}
+        {photos.length < 6 && (
+          <label className={`flex items-center justify-center gap-2 w-full border-2 border-dashed rounded-xl py-4 cursor-pointer transition-colors text-sm font-medium
+            ${uploading ? "border-zinc-700 text-zinc-600" : "border-zinc-700 hover:border-[#d4a017] text-zinc-400 hover:text-[#d4a017]"}`}>
+            {uploading ? (
+              <><Loader2 size={16} className="animate-spin" /> Enviando...</>
+            ) : (
+              <><ImagePlus size={16} /> Adicionar fotos ({photos.length}/6)</>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              className="hidden"
+              onChange={handlePhotoChange}
+              disabled={uploading}
+            />
+          </label>
+        )}
+        <p className="text-zinc-600 text-xs">JPG, PNG ou WebP · máx. 5MB por foto · primeira foto = capa</p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || uploading}
+        className="w-full py-3 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold rounded-lg transition-colors mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
       >
-        {loading ? 'Cadastrando...' : 'Cadastrar na Frota'}
+        {loading ? <><Loader2 size={16} className="animate-spin" /> Cadastrando...</> : <><Upload size={16} /> Cadastrar na Frota</>}
       </button>
     </form>
   )

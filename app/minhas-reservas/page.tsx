@@ -55,15 +55,16 @@ export default async function MyReservationsPage({
     <div className="min-h-screen bg-black text-white">
       <Navbar session={session} />
 
-      <div className="container mx-auto px-6 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12 max-w-4xl">
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 md:mb-8">
           <div>
-            <h1 className="text-4xl font-bold font-outfit">Minhas Reservas</h1>
-            <p className="text-zinc-400 mt-1">Olá, {session.user.name?.split(" ")[0]}! Acompanhe seus aluguéis.</p>
+            <h1 className="text-2xl md:text-4xl font-bold font-outfit">Minhas Reservas</h1>
+            <p className="text-zinc-400 text-sm mt-0.5">Olá, {session.user.name?.split(" ")[0]}!</p>
           </div>
-          <Link href="/frota" className="hidden sm:flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-4 py-2 rounded-xl text-sm transition-colors">
-            Nova Reserva <ArrowRight size={14} />
+          <Link href="/frota" className="flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] active:bg-[#b8860b] text-black font-bold px-3 md:px-4 py-2 rounded-xl text-sm transition-colors">
+            <span className="hidden sm:inline">Nova Reserva</span>
+            <ArrowRight size={14} />
           </Link>
         </div>
 
@@ -94,7 +95,7 @@ export default async function MyReservationsPage({
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <a href="https://wa.me/5511999990000" target="_blank" rel="noopener noreferrer"
+                <a href="https://wa.me/5592992921946" target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors">
                   <Phone size={14} /> Suporte
                 </a>
@@ -140,51 +141,51 @@ export default async function MyReservationsPage({
 
               return (
                 <div key={r.id} className={`bg-zinc-900 border rounded-2xl overflow-hidden transition-all ${r.status === "ACTIVE" ? "border-emerald-500/30" : "border-zinc-800 hover:border-zinc-700"}`}>
-                  <div className="p-6">
+                  <div className="p-4 md:p-6">
                     {/* Top row */}
-                    <div className="flex items-start justify-between gap-4 mb-5">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                          <Car className="w-6 h-6 text-[#d4a017]" />
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                          <Car className="w-5 h-5 md:w-6 md:h-6 text-[#d4a017]" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold font-outfit text-white">{r.vehicle.brand} {r.vehicle.model}</h3>
-                          <p className="text-zinc-500 text-sm">{r.vehicle.plate} • {r.vehicle.category.name} • {r.vehicle.year}</p>
+                          <h3 className="text-base md:text-xl font-bold font-outfit text-white leading-tight">{r.vehicle.brand} {r.vehicle.model}</h3>
+                          <p className="text-zinc-500 text-xs md:text-sm">{r.vehicle.plate} • {r.vehicle.year}</p>
                         </div>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold border flex-shrink-0 ${cfg.color}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] md:text-xs font-bold border flex-shrink-0 ${cfg.color}`}>
                         {cfg.label}
                       </span>
                     </div>
 
-                    {/* Details grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-zinc-800">
+                    {/* Details grid — 2 cols on mobile, 4 on desktop */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-zinc-800">
                       <div>
-                        <p className="text-zinc-500 text-xs uppercase font-bold tracking-wider mb-1">Retirada</p>
-                        <div className="flex items-center gap-1.5 text-zinc-300 text-sm">
-                          <CalendarDays size={14} className="text-zinc-500" />
+                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Retirada</p>
+                        <div className="flex items-center gap-1 text-zinc-300 text-sm">
+                          <CalendarDays size={12} className="text-zinc-500 flex-shrink-0" />
                           {new Date(r.startDate).toLocaleDateString("pt-BR")}
                         </div>
                       </div>
                       <div>
-                        <p className="text-zinc-500 text-xs uppercase font-bold tracking-wider mb-1">Devolução</p>
-                        <div className="flex items-center gap-1.5 text-zinc-300 text-sm">
-                          <CalendarDays size={14} className="text-zinc-500" />
+                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Devolução</p>
+                        <div className="flex items-center gap-1 text-zinc-300 text-sm">
+                          <CalendarDays size={12} className="text-zinc-500 flex-shrink-0" />
                           {new Date(r.endDate).toLocaleDateString("pt-BR")}
                         </div>
                       </div>
                       <div>
-                        <p className="text-zinc-500 text-xs uppercase font-bold tracking-wider mb-1">Duração</p>
-                        <p className="text-zinc-300 text-sm">{days} dia(s)</p>
+                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Duração</p>
+                        <p className="text-zinc-300 text-sm">{days}d</p>
                       </div>
                       <div>
-                        <p className="text-zinc-500 text-xs uppercase font-bold tracking-wider mb-1">Total</p>
-                        <p className="text-xl font-bold text-[#d4a017]">{formatCurrency(Number(r.totalValue))}</p>
+                        <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Total</p>
+                        <p className="text-lg font-bold text-[#d4a017]">{formatCurrency(Number(r.totalValue))}</p>
                       </div>
                     </div>
 
                     {/* Payment + Contract row */}
-                    <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-zinc-800/50">
+                    <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-zinc-800/50">
                       {/* Payment status */}
                       {payment && (
                         <div className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border ${

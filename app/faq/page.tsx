@@ -102,8 +102,8 @@ export default async function FAQPage() {
           <h2 className="text-2xl font-bold font-outfit mb-3">Não encontrou o que procurava?</h2>
           <p className="text-zinc-400 mb-6">Entre em contato com nossa equipe pelo WhatsApp ou e-mail.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://wa.me/5511999990000" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors">
-              WhatsApp
+            <a href="https://wa.me/5592992921946" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+              WhatsApp (92) 99292-1946
             </a>
             <Link href="/frota" className="inline-flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-6 py-3 rounded-xl transition-colors">
               Ver Frota <ArrowRight size={16} />
