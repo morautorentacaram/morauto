@@ -2,9 +2,7 @@ import { getCategories, deleteCategory } from "@/app/actions/category.actions";
 import CategoryForm from "@/components/admin/CategoryForm";
 import { formatCurrency } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
-import type { Category } from "@prisma/client";
-
-type CategoryWithCount = Category & { _count: { vehicles: number } };
+type CategoryWithCount = Awaited<ReturnType<typeof getCategories>>[0];
 
 export const metadata = {
   title: "Gerenciar Categorias - Morauto Admin",
