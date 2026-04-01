@@ -12,6 +12,8 @@ const outfit = Outfit({
   variable: "--font-outfit",
 });
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "MorAuto | Locadora de Veículos Premium",
   description: "A solução completa para locação de veículos, gestão de frota e contratos digitais no Brasil.",
