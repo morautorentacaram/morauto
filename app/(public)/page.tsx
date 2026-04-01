@@ -1,5 +1,4 @@
 import { auth } from "@/auth"
-import { db } from "@/lib/db"
 import Navbar from "@/components/public/Navbar"
 import Footer from "@/components/public/Footer"
 import Link from "next/link"
@@ -11,14 +10,29 @@ import {
 import { formatCurrency } from "@/lib/utils"
 
 export default async function Home() {
-  const session = await auth()
+  let session = null
+  let featuredVehicles: typeof import("@prisma/client").Prisma.VehicleGetPayload<{
+    include: { category: true }
+  }>[] = []
 
-  const featuredVehicles = await db.vehicle.findMany({
-    where: { status: "AVAILABLE" },
-    include: { category: true },
-    orderBy: { category: { dailyRate: "desc" } },
-    take: 3,
-  })
+  try {
+    session = await auth()
+  } catch {
+    // AUTH_SECRET not configured or auth unavailable — render as guest
+  }
+
+  try {
+    const { db } = await import("@/lib/db")
+    featuredVehicles = await db.vehicle.findMany({
+      where: { status: "AVAILABLE" },
+      include: { category: true },
+      orderBy: { category: { dailyRate: "desc" } },
+      take: 3,
+    }) as any
+  } catch {
+    // DATABASE_URL not configured or DB unreachable — show empty featured section
+  }
+
 
   return (
     <div className="min-h-screen bg-black text-white">
