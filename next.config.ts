@@ -6,8 +6,6 @@ const nextConfig: NextConfig = {
     // Os erros são de inferência gerada pelo Next.js 16 em .next/types — não afetam o runtime
     ignoreBuildErrors: true,
   },
-  // @docuseal/api usa node:https / node:http — precisa ser resolvido pelo Node.js em runtime
-  serverExternalPackages: ["@docuseal/api"],
   images: {
     remotePatterns: [
       {

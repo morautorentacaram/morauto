@@ -1,19 +1,39 @@
 /**
- * DocuSeal integration — uses the official @docuseal/api SDK
+ * DocuSeal API client — implementado com fetch nativo para compatibilidade com Next.js/Turbopack.
+ * O SDK oficial (@docuseal/api) usa node:https que falha no bundler do Next.js 16.
  * Docs: https://www.docuseal.com/docs/api
  */
 
-import docuseal from "@docuseal/api"
+const DOCUSEAL_API = "https://api.docuseal.com"
 
-// Configure once (called at module load time on the server)
-docuseal.configure({ key: process.env.DOCUSEAL_API_KEY! })
+function authHeaders() {
+  return {
+    "X-Auth-Token": process.env.DOCUSEAL_API_KEY!,
+    "Content-Type": "application/json",
+  }
+}
 
-export { docuseal }
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-// ── Re-export useful types ────────────────────────────────────────────────────
-export type { CreateSubmissionFromHtmlResponse } from "@docuseal/api"
+export interface DocuSealSubmitter {
+  id: number
+  submission_id: number
+  uuid: string
+  email: string
+  slug: string
+  status: "awaiting" | "sent" | "opened" | "completed" | "declined"
+  completed_at: string | null
+  embed_src: string
+  values: Array<{ field: string; value: string }>
+}
 
-// ── Create submission directly from HTML (no separate template step) ──────────
+export interface DocuSealSubmissionFromHtmlResponse {
+  id: number
+  name?: string
+  submitters: DocuSealSubmitter[]
+}
+
+// ── Create submission directly from HTML ─────────────────────────────────────
 
 export async function createContractSubmission(options: {
   contractNumber: string
@@ -21,19 +41,30 @@ export async function createContractSubmission(options: {
   signerEmail: string
   signerName: string
   sendEmail?: boolean
-}) {
-  return docuseal.createSubmissionFromHtml({
-    name:       `Contrato ${options.contractNumber} — Morauto`,
-    send_email: options.sendEmail ?? true,
-    documents:  [{ name: options.contractNumber, html: options.html, size: "A4" }],
-    submitters: [
-      {
-        role:  "First Party",
-        email: options.signerEmail,
-        name:  options.signerName,
-      },
-    ],
+}): Promise<DocuSealSubmissionFromHtmlResponse> {
+  const res = await fetch(`${DOCUSEAL_API}/submissions/html`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      name:       `Contrato ${options.contractNumber} — Morauto`,
+      send_email: options.sendEmail ?? true,
+      documents:  [{ name: options.contractNumber, html: options.html, size: "A4" }],
+      submitters: [
+        {
+          role:  "First Party",
+          email: options.signerEmail,
+          name:  options.signerName,
+        },
+      ],
+    }),
   })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`DocuSeal API error ${res.status}: ${err}`)
+  }
+
+  return res.json()
 }
 
 // ── Build contract HTML ───────────────────────────────────────────────────────
