@@ -1,70 +1,30 @@
-import type { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// All heavy imports are inside getDb() so importing this module
-// at build time is completely safe — no pg/PrismaPg loaded until first use.
+// Lazy singleton — instantiated on first property access, never at module import.
+// Static imports are safe because @prisma/client and pg are in serverExternalPackages.
 declare global {
   var prisma: PrismaClient | undefined;
 }
 
-async function createClient(): Promise<PrismaClient> {
-  const { PrismaClient } = await import("@prisma/client");
-  const { PrismaPg } = await import("@prisma/adapter-pg");
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-  return new PrismaClient({ adapter });
-}
-
-function getDb(): PrismaClient {
+function getClient(): PrismaClient {
   if (globalThis.prisma) return globalThis.prisma;
-  // Synchronous stub: actual client is resolved lazily via Promise on first real call
-  throw new Error(
-    "db not initialized — call initDb() at the start of your handler"
-  );
-}
 
-let _dbPromise: Promise<PrismaClient> | null = null;
+  const client = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  });
 
-function getDbAsync(): Promise<PrismaClient> {
-  if (!_dbPromise) {
-    _dbPromise = createClient().then((client) => {
-      if (process.env.NODE_ENV !== "production") globalThis.prisma = client;
-      return client;
-    });
+  if (process.env.NODE_ENV !== "production") {
+    globalThis.prisma = client;
   }
-  return _dbPromise;
+
+  return client;
 }
 
-// Proxy that resolves the client on first property access
+// Single-level Proxy: db.user returns the REAL Prisma delegate,
+// so all model methods, includes, and $transaction work correctly.
 export const db = new Proxy({} as PrismaClient, {
   get(_target, prop: string | symbol) {
-    // Return a function that awaits the client and proxies the call
-    if (globalThis.prisma) {
-      return (globalThis.prisma as any)[prop];
-    }
-    // Return a Proxy that lazily initializes on call
-    return new Proxy(function () {}, {
-      apply(_fn, _this, args) {
-        return getDbAsync().then((client) => {
-          const method = (client as any)[prop];
-          if (typeof method === "function") {
-            return method.apply(client, args);
-          }
-          return method;
-        });
-      },
-      get(_t, innerProp) {
-        return new Proxy(function () {}, {
-          apply(_fn2, _this2, args2) {
-            return getDbAsync().then((client) => {
-              const model = (client as any)[prop];
-              const method = model?.[innerProp];
-              if (typeof method === "function") {
-                return method.apply(model, args2);
-              }
-              return method;
-            });
-          },
-        });
-      },
-    });
+    return (getClient() as any)[prop];
   },
 });
