@@ -1,14 +1,42 @@
-import { PrismaClient } from "@prisma/client"
-import { PrismaPg } from "@prisma/adapter-pg"
+// lib/db.ts
+// Only a type-level import at module scope — safe for static build / Turbopack.
+// The actual PrismaClient + pg are loaded lazily on first use at runtime.
 
-const prismaClientSingleton = () => {
+import type { PrismaClient } from "@prisma/client"
+
+let _db: PrismaClient | undefined
+
+async function getDb(): Promise<PrismaClient> {
+  if (_db) return _db
+  const { PrismaClient } = await import("@prisma/client")
+  const { PrismaPg }     = await import("@prisma/adapter-pg")
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-  return new PrismaClient({ adapter })
+  _db = new PrismaClient({ adapter })
+  return _db
 }
 
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>
+function makeProxy(prop: string) {
+  // Returns a callable proxy so both db.user.findMany() and db.$transaction() work
+  const callable = (...args: unknown[]) =>
+    getDb().then((c) => {
+      const target = (c as any)[prop]
+      return typeof target === "function" ? target.apply(c, args) : target
+    })
+
+  return new Proxy(callable as any, {
+    get(_, method: string) {
+      return (...args: unknown[]) =>
+        getDb().then((c) => {
+          const model = (c as any)[prop]
+          return model[method].apply(model, args)
+        })
+    },
+  })
 }
 
-export const db = globalThis.prisma ?? prismaClientSingleton()
-if (process.env.NODE_ENV !== "production") globalThis.prisma = db
+export const db = new Proxy({} as PrismaClient, {
+  get(_, prop: string) {
+    if (_db) return (_db as any)[prop]
+    return makeProxy(prop)
+  },
+})
