@@ -15,10 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-
-export const dynamic = "force-dynamic"
 
 interface DocuSealSubmitterValue {
   field: string
@@ -49,6 +46,7 @@ interface DocuSealWebhookPayload {
 }
 
 export async function POST(req: NextRequest) {
+  const { db } = await import("@/lib/db")
   try {
     const body = await req.json() as DocuSealWebhookPayload
 

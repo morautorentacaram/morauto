@@ -17,7 +17,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
 // ── PIX webhook payload types ─────────────────────────────────────────────────
@@ -43,6 +42,7 @@ interface PixWebhookPayload {
 // ── POST /api/webhook/bb ──────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const { db } = await import("@/lib/db")
   try {
     const body = await req.json() as PixWebhookPayload
 
