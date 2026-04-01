@@ -8,7 +8,10 @@ export default async function MinhaContaLayout({ children }: { children: React.R
     <div className="min-h-screen bg-black text-white">
       <Navbar session={session} />
       {children}
-      <Footer />
+      {/* Footer only on desktop — bottom nav handles mobile navigation */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   )
 }
