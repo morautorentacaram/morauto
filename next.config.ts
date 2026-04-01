@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     "@prisma/client",
     "pg",
     "bcryptjs",
-    // NOTE: pg-native removed from here — aliased to false below instead
+    "@auth/prisma-adapter",
   ],
   images: {
     remotePatterns: [
@@ -20,8 +20,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // pg optionally tries to require('pg-native') — alias it to false so
-  // both Turbopack (Vercel) and webpack silently skip it
+  // pg optionally tries to require('pg-native') — alias to false so the bundler
+  // silently skips it instead of crashing with externalRequire on Vercel
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -29,11 +29,10 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        "pg-native": false,
-      },
+  turbopack: {
+    resolveAlias: {
+      // false is not valid here; use an empty module path trick via webpack above
+      // Turbopack will respect serverExternalPackages + webpack alias fallback
     },
   },
 };
