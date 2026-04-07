@@ -126,7 +126,7 @@ export default function SaleVehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           </div>
           <div className="space-y-2">
             <label className={labelCls}>Ano *</label>
-            <input name="year" type="number" required defaultValue={vehicle?.year ?? new Date().getFullYear()} min={1990} max={2030} className={inputCls} />
+            <input name="year" type="number" required defaultValue={vehicle?.year ?? new Date().getFullYear()} className={inputCls} />
           </div>
           <div className="space-y-2">
             <label className={labelCls}>Cor *</label>
