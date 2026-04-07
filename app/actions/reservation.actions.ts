@@ -96,13 +96,28 @@ export async function updateReservation(id: string, formData: FormData) {
 
 export async function deleteReservation(id: string) {
   try {
-    const reservation = await db.reservation.findUnique({ where: { id } })
+    const reservation = await db.reservation.findUnique({
+      where: { id },
+      include: { contract: { include: { inspections: true } } },
+    })
     if (!reservation) return { error: "Reserva não encontrada." }
 
     if (reservation.status === "ACTIVE")
       return { error: "Não é possível excluir uma locação ativa. Cancele primeiro." }
 
+    // 1. Delete inspections linked to the contract
+    if (reservation.contract) {
+      await db.inspection.deleteMany({ where: { contractId: reservation.contract.id } })
+      await db.rentalContract.delete({ where: { id: reservation.contract.id } })
+    }
+
+    // 2. Delete payments
     await db.payment.deleteMany({ where: { reservationId: id } })
+
+    // 3. Unlink fines (nullable relation — just nullify)
+    await db.fine.updateMany({ where: { reservationId: id }, data: { reservationId: null } })
+
+    // 4. Delete reservation
     await db.reservation.delete({ where: { id } })
 
     if (reservation.status !== "COMPLETED") {
