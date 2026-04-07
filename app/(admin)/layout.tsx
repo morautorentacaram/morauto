@@ -8,6 +8,7 @@ import {
   Wrench, AlertTriangle, DollarSign, ClipboardCheck, Building2,
   BarChart3, CalendarClock, Tag
 } from "lucide-react"
+import Image from "next/image"
 
 export default async function AdminLayout({
   children,
@@ -27,10 +28,8 @@ export default async function AdminLayout({
       {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 bg-black/50 flex flex-col py-4 overflow-y-auto">
         <div className="mb-6 px-6">
-          <Link href="/admin">
-            <h1 className="text-2xl font-black text-white font-outfit uppercase tracking-tighter">
-              Morauto<span className="text-[#d4a017]">.</span>
-            </h1>
+          <Link href="/admin" className="block mb-1">
+            <Image src="/logo.png" alt="Morauto" width={130} height={44} className="object-contain" priority />
           </Link>
           <span className="text-xs text-zinc-500 font-bold tracking-widest uppercase">Admin Panel</span>
         </div>

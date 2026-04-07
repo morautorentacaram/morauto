@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, LayoutDashboard, Car, HelpCircle, Info, ShoppingBag, CalendarClock, UserCircle2, ChevronRight } from "lucide-react"
 import { useState, useEffect } from "react"
+import Image from "next/image"
 
 type Session = {
   user: { name?: string | null; role?: string | null }
@@ -29,10 +30,8 @@ export default function Navbar({ session }: { session: Session }) {
       <header className="h-16 md:h-20 border-b border-white/5 bg-black/90 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 h-full flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-white font-outfit uppercase tracking-tighter">
-              Morauto<span className="text-[#d4a017]">.</span>
-            </h1>
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.png" alt="Morauto" width={130} height={44} className="object-contain" priority />
           </Link>
 
           {/* Desktop Nav */}
@@ -106,9 +105,7 @@ export default function Navbar({ session }: { session: Session }) {
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/60">
-          <span className="text-white font-black font-outfit text-xl uppercase tracking-tighter">
-            Morauto<span className="text-[#d4a017]">.</span>
-          </span>
+          <Image src="/logo.png" alt="Morauto" width={110} height={36} className="object-contain" />
           <button
             onClick={() => setOpen(false)}
             className="w-9 h-9 rounded-xl bg-zinc-900 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"

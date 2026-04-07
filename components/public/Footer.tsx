@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Phone, Mail, MapPin } from "lucide-react"
+import Image from "next/image"
 
 export default function Footer() {
   return (
@@ -8,9 +9,7 @@ export default function Footer() {
         {/* Desktop: 4-col grid */}
         <div className="hidden md:grid grid-cols-4 gap-12 py-16 mb-0">
           <div>
-            <h2 className="text-2xl font-black text-white font-outfit uppercase tracking-tighter mb-3">
-              Morauto<span className="text-[#d4a017]">.</span>
-            </h2>
+            <Image src="/logo.png" alt="Morauto" width={130} height={44} className="object-contain mb-3" />
             <p className="text-sm leading-relaxed">
               Locadora de veículos premium com foco em tecnologia, transparência e experiência superior ao cliente.
             </p>
@@ -59,9 +58,7 @@ export default function Footer() {
         <div className="md:hidden py-8 space-y-6">
           {/* Brand */}
           <div>
-            <h2 className="text-xl font-black text-white font-outfit uppercase tracking-tighter mb-1">
-              Morauto<span className="text-[#d4a017]">.</span>
-            </h2>
+            <Image src="/logo.png" alt="Morauto" width={110} height={36} className="object-contain mb-1" />
             <p className="text-xs leading-relaxed text-zinc-500">Locadora de veículos premium — Manaus, AM</p>
           </div>
 
