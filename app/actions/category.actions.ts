@@ -27,7 +27,7 @@ export async function createCategory(formData: FormData) {
     const monthlyRate = formData.get("monthlyRate") ? Number(formData.get("monthlyRate")) : null;
     const depositValue = Number(formData.get("depositValue"));
 
-    if (!name || !dailyRate || !depositValue) {
+    if (!name || !dailyRate || depositValue == null || isNaN(depositValue)) {
       return { error: "Nome, preço diário e valor da caução são obrigatórios." };
     }
 
@@ -57,7 +57,7 @@ export async function updateCategory(id: string, formData: FormData) {
     const monthlyRate = formData.get("monthlyRate") ? Number(formData.get("monthlyRate")) : null;
     const depositValue = Number(formData.get("depositValue"));
 
-    if (!name || !dailyRate || !depositValue) {
+    if (!name || !dailyRate || depositValue == null || isNaN(depositValue)) {
       return { error: "Nome, preço diário e valor da caução são obrigatórios." };
     }
 
