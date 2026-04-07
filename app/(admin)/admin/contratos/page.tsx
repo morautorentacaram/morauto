@@ -2,8 +2,8 @@ import { getContracts, generateRentalContract } from "@/app/actions/contract.act
 import { getReservations } from "@/app/actions/reservation.actions"
 type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
 import { formatCurrency } from "@/lib/utils"
-import { FileText, Eye, FilePlus, CheckCircle } from "lucide-react"
-import Link from "next/link"
+import { FilePlus } from "lucide-react"
+import ContractManager from "@/components/admin/ContractManager"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Contratos — Morauto Admin" }
@@ -65,67 +65,7 @@ export default async function ContractsPage() {
         </div>
       )}
 
-      {/* Contracts table */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-zinc-950/50 border-b border-zinc-800 text-zinc-400 text-sm">
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Contrato</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Cliente</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Veículo</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Período</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Valor</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider">Assinado</th>
-                <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">Ver</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/50">
-              {contracts.map((c) => (
-                <tr key={c.id} className="hover:bg-zinc-800/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-[#d4a017]" />
-                      <span className="text-white font-mono text-sm">{c.number}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-zinc-300 text-sm">{c.customer.user.name}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-zinc-300 text-sm">{c.reservation.vehicle.brand} {c.reservation.vehicle.model}</div>
-                    <div className="text-zinc-500 text-xs">{c.reservation.vehicle.plate}</div>
-                  </td>
-                  <td className="px-6 py-4 text-zinc-400 text-sm">
-                    {new Date(c.reservation.startDate).toLocaleDateString("pt-BR")} →<br />
-                    {new Date(c.reservation.endDate).toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="px-6 py-4 text-[#d4a017] font-bold text-sm">{formatCurrency(Number(c.reservation.totalValue))}</td>
-                  <td className="px-6 py-4">
-                    {c.signedAt ? (
-                      <div className="flex items-center gap-1 text-emerald-400 text-sm">
-                        <CheckCircle className="w-4 h-4" />
-                        {new Date(c.signedAt).toLocaleDateString("pt-BR")}
-                      </div>
-                    ) : (
-                      <span className="text-amber-400 text-xs">Pendente</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Link
-                      href={`/admin/contratos/${c.id}`}
-                      className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors inline-flex"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-              {contracts.length === 0 && (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-zinc-500">Nenhum contrato gerado ainda.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ContractManager contracts={contracts as any} />
     </div>
   )
 }

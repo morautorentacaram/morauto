@@ -68,6 +68,43 @@ export async function getContractById(id: string) {
   })
 }
 
+export async function deleteContract(id: string) {
+  try {
+    await db.rentalContract.delete({ where: { id } })
+    revalidatePath("/admin/contratos")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao excluir contrato." }
+  }
+}
+
+export async function updateContractTerms(id: string, formData: FormData) {
+  try {
+    const terms = formData.get("terms") as string
+    const number = formData.get("number") as string
+    const signedAt = formData.get("signedAt") as string | null
+
+    if (!terms || !number) return { error: "Campos obrigatórios faltando." }
+
+    await db.rentalContract.update({
+      where: { id },
+      data: {
+        terms,
+        number,
+        signedAt: signedAt ? new Date(signedAt) : null,
+      },
+    })
+
+    revalidatePath("/admin/contratos")
+    revalidatePath(`/admin/contratos/${id}`)
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao atualizar contrato." }
+  }
+}
+
 // ── Generate ─────────────────────────────────────────────────────────────────
 export async function generateRentalContract(reservationId: string) {
   try {
@@ -192,7 +229,7 @@ function buildContractTerms({
   const depositValue = Number(vehicle.category.depositValue ?? 0)
   const totalValue   = Number(reservation.totalValue)
   const kmLimit      = 1500
-  const kmFranchise  = Math.round(kmLimit / (days > 0 ? days * (7 / 7) : 1))  // diária
+
   const kmExcess     = 0.58
   const tax10pct     = totalValue * 0.1
 
