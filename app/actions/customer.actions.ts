@@ -152,12 +152,21 @@ export async function updateCustomer(id: string, formData: FormData) {
     const cnhUrl = formData.get("cnhUrl") as string | null
     const addressProofUrl = formData.get("addressProofUrl") as string | null
 
+    const address = formData.get("address") as string | null
+    const notes   = formData.get("notes")   as string | null
+    const scoreRaw = formData.get("score")  as string | null
+
     const updateData: Record<string, unknown> = {
-      phone: phone ? phone.replace(/\D/g, "") : null,
-      cnh: cnh ? cnh.replace(/\D/g, "") : null,
+      phone:         phone ? phone.replace(/\D/g, "") : null,
+      cnh:           cnh   ? cnh.replace(/\D/g, "")   : null,
       cnhExpiration: cnhExpirationRaw ? new Date(cnhExpirationRaw) : null,
+      address:       address || null,
+      notes:         notes   || null,
     }
-    if (cnhUrl) updateData.cnhUrl = cnhUrl
+    if (scoreRaw !== null && scoreRaw !== "") {
+      updateData.score = Math.max(0, Math.min(100, Number(scoreRaw)))
+    }
+    if (cnhUrl)         updateData.cnhUrl         = cnhUrl
     if (addressProofUrl) updateData.addressProofUrl = addressProofUrl
 
     await db.customer.update({
