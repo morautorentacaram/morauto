@@ -108,8 +108,7 @@ export default function CustomerEditModal({
               </div>
               <div className="col-span-2 space-y-1">
                 <label className={lbl}>E-mail</label>
-                <input value={customer.user.email ?? ""} disabled className="w-full bg-zinc-950 border border-zinc-800 text-zinc-500 px-3 py-2.5 rounded-lg text-sm cursor-not-allowed" />
-                <p className="text-zinc-600 text-xs">O e-mail não pode ser alterado.</p>
+                <input name="email" type="email" required defaultValue={customer.user.email ?? ""} className={inp} />
               </div>
               <div className="space-y-1">
                 <label className={lbl}>Documento ({customer.type})</label>

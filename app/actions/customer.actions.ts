@@ -136,17 +136,24 @@ export async function getCustomerById(id: string) {
 
 export async function updateCustomer(id: string, formData: FormData) {
   try {
-    const name = formData.get("name") as string
+    const name  = formData.get("name")  as string
+    const email = formData.get("email") as string
     const phone = formData.get("phone") as string
-    const cnh = formData.get("cnh") as string
+    const cnh   = formData.get("cnh")   as string
     const cnhExpirationRaw = formData.get("cnhExpiration") as string
 
     const customer = await db.customer.findUnique({ where: { id }, include: { user: true } })
     if (!customer) return { error: "Cliente não encontrado." }
 
+    // Check email uniqueness if changed
+    if (email && email !== customer.user.email) {
+      const existing = await db.user.findUnique({ where: { email } })
+      if (existing) return { error: "Este e-mail já está em uso por outro usuário." }
+    }
+
     await db.user.update({
       where: { id: customer.userId },
-      data: { name },
+      data: { name, ...(email ? { email } : {}) },
     })
 
     const cnhUrl = formData.get("cnhUrl") as string | null
