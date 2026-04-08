@@ -144,6 +144,20 @@ export async function refundPayment(id: string) {
   }
 }
 
+export async function revertPaymentToPending(id: string) {
+  try {
+    await db.payment.update({
+      where: { id },
+      data: { status: "PENDING", paidAt: null },
+    })
+    revalidatePath("/admin/financeiro")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao reverter pagamento." }
+  }
+}
+
 export async function getMonthlyRevenue() {
   const months = []
   for (let i = 5; i >= 0; i--) {

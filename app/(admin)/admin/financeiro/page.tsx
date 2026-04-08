@@ -1,4 +1,4 @@
-import { getFinancialSummary, confirmPayment, refundPayment } from "@/app/actions/financial.actions"
+import { getFinancialSummary, confirmPayment, refundPayment, revertPaymentToPending } from "@/app/actions/financial.actions"
 type FinancialSummaryType = Awaited<ReturnType<typeof getFinancialSummary>>
 type OverdueReservationType = FinancialSummaryType["overdueReservations"][0]
 import { formatCurrency } from "@/lib/utils"
@@ -175,6 +175,13 @@ export default async function FinancialPage() {
                           {p.status === "PAID" && (
                             <form action={async () => { "use server"; await refundPayment(p.id) }}>
                               <button type="submit" title="Estornar" className="text-purple-400 hover:text-purple-300 p-1 rounded hover:bg-purple-900/20 transition-colors">
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                            </form>
+                          )}
+                          {p.status === "REFUNDED" && (
+                            <form action={async () => { "use server"; await revertPaymentToPending(p.id) }}>
+                              <button type="submit" title="Reverter para Pendente" className="text-amber-400 hover:text-amber-300 p-1 rounded hover:bg-amber-900/20 transition-colors">
                                 <RotateCcw className="w-4 h-4" />
                               </button>
                             </form>
