@@ -1,30 +1,32 @@
 import { getContractById } from "@/app/actions/contract.actions"
-import { formatCurrency } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import ContractPdfButton from "@/components/admin/ContractPdfButton"
 import SendForSignatureButton from "@/components/admin/SendForSignatureButton"
 import {
   ArrowLeft, CheckCircle, Clock, Car, User, Building2,
-  CalendarDays, DollarSign, FileText, ShieldAlert, Wrench,
-  AlertTriangle, Scale, MapPin,
+  DollarSign, FileText, ShieldAlert, Wrench,
+  AlertTriangle, Scale,
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Contrato — Morauto Admin" }
 
+const TZ = "America/Manaus"
+
 function fmt(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
 }
 function fmtDate(d: Date | string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: TZ })
 }
 function fmtDateTime(d: Date | string) {
   const dt = new Date(d)
-  return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h — ${fmtDate(dt)}`
+  const time = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+  return `${time}h — ${fmtDate(dt)}`
 }
 function fmtDateLong(d: Date | string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
+  return new Date(d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: TZ })
 }
 
 export default async function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -161,7 +163,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 { l: "Chassi",        v: vehicle.chassi ?? "—", small: true },
                 { l: "Categoria",     v: vehicle.category.name },
                 { l: "KM Saída",      v: `${(vehicle.km ?? 0).toLocaleString("pt-BR")} km` },
-              ].map(({ l, v, bold, gold: g, small }) => (
+              ].map(({ l, v, gold: g, small }) => (
                 <div key={l} className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
                   <p className="text-zinc-500 text-xs uppercase tracking-wider">{l}</p>
                   <p className={`mt-1 font-medium ${small ? "text-xs" : "text-sm"} ${g ? "text-[#d4a017] font-mono font-bold" : "text-white"}`}>{v}</p>

@@ -21,17 +21,20 @@ function fmt(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
 }
 
+const TZ = "America/Manaus"
+
 function fmtDate(d: Date | string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+  return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: TZ })
 }
 
 function fmtDateLong(d: Date | string) {
-  return new Date(d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
+  return new Date(d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: TZ })
 }
 
 function fmtDateTime(d: Date | string) {
   const dt = new Date(d)
-  return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h ${fmtDate(dt)}`
+  const time = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+  return `${time}h ${fmtDate(dt)}`
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────────────
@@ -122,27 +125,31 @@ export async function generateRentalContract(reservationId: string) {
     const existing = await db.rentalContract.findUnique({ where: { reservationId } })
     if (existing) return { contractId: existing.id }
 
-    const year  = new Date().getFullYear()
+    const now   = new Date()
+    const year  = now.getFullYear()
     const count = await db.rentalContract.count()
     const number = `MOR-${year}-${String(count + 1).padStart(4, "0")}`
 
+    // Set actual pickup time to now; keep end date as-is
+    const startDate = now
+    const endDate   = new Date(reservation.endDate)
+
     const days = Math.max(
       1,
-      Math.ceil(
-        (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
-      )
+      Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
     )
 
-    const terms = buildContractTerms({ reservation, days, number })
+    // Update reservation startDate to actual pickup time
+    await db.reservation.update({
+      where: { id: reservationId },
+      data: { startDate, status: "CONFIRMED" },
+    })
+
+    const reservationWithNow = { ...reservation, startDate }
+    const terms = buildContractTerms({ reservation: reservationWithNow, days, number })
 
     const contract = await db.rentalContract.create({
       data: { number, terms, reservationId, customerId: reservation.customerId },
-    })
-
-    await db.reservation.update({
-      where: { id: reservationId },
-      data: { status: "CONFIRMED" },
     })
 
     revalidatePath("/admin/contratos")
