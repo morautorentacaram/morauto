@@ -10,7 +10,9 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      {children}
+      <div className="pb-20 md:pb-0">
+        {children}
+      </div>
       <MobileNav />
       <InstallPWA />
     </>
