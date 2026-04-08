@@ -30,8 +30,8 @@ export default function CustomersPdfButton({ customers }: { customers: Customer[
   async function handleExport() {
     setLoading(true)
     try {
-      const { jsPDF } = await import("jspdf")
-      await import("jspdf-autotable")
+      const { default: jsPDF }     = await import("jspdf")
+      const { default: autoTable } = await import("jspdf-autotable")
 
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" }) as any
 
@@ -110,7 +110,7 @@ export default function CustomersPdfButton({ customers }: { customers: Customer[
         c.blocked ? "Bloqueado" : "Ativo",
       ])
 
-      doc.autoTable({
+      autoTable(doc, {
         startY: 50,
         head: [["Nome", "E-mail", "CPF/CNPJ", "Tipo", "Telefone", "CNH", "Val. CNH", "Locações", "Score", "Status"]],
         body: rows,

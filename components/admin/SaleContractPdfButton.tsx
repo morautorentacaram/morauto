@@ -54,8 +54,8 @@ export default function SaleContractPdfButton({ contract }: Props) {
   async function handleExport() {
     setLoading(true)
     try {
-      const { default: jsPDF }     = await import("jspdf")
-      await import("jspdf-autotable")
+      const { default: jsPDF }       = await import("jspdf")
+      const { default: autoTable }   = await import("jspdf-autotable")
 
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" }) as any
       const W   = doc.internal.pageSize.getWidth()
@@ -250,7 +250,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
       const vNome = `${vehicle.brand} ${vehicle.model}${vehicle.version ? " " + vehicle.version : ""}`
       paragraph(`O VENDEDOR vende ao COMPRADOR o veículo:`)
 
-      doc.autoTable({
+      autoTable(doc, {
         startY: y,
         body: [
           ["Marca/Modelo", vNome, "Ano Fab./Mod.", `${vehicle.year}/${vehicle.year}`],
@@ -267,7 +267,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
         styles: { lineColor: [200,200,200] as any },
         margin: { left: 14, right: 14 },
       })
-      y = doc.lastAutoTable.finalY + 4
+      y = (doc as any).lastAutoTable.finalY + 4
 
       // RESPONSABILIDADES
       sectionBar("DAS RESPONSABILIDADES")
@@ -296,7 +296,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
           d.setMonth(d.getMonth() + i)
           rows.push([`${i + 1}ª Promissória`, fmtMoney(installmentAmount), fmtDate(d)])
         }
-        doc.autoTable({
+        autoTable(doc, {
           startY: y,
           head: [["Parcela", "Valor", "Vencimento"]],
           body: rows,
@@ -307,7 +307,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
           styles: { lineColor: [200,200,200] as any },
           margin: { left: 14, right: 14 },
         })
-        y = doc.lastAutoTable.finalY + 4
+        y = (doc as any).lastAutoTable.finalY + 4
         paragraph("Parágrafo Primeiro — Se o pagamento for realizado através de cheque, a quitação será pro solvendo até a compensação bancária.")
       }
 
@@ -368,7 +368,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
       paragraph(`Declaro para os devidos fins que examinei e recebi, nesta data, o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas. Declaro ainda estar ciente de que se trata de um veículo usado, no estado em que se encontra e com as seguintes garantias abaixo especificadas.`)
       y += 2
 
-      doc.autoTable({
+      autoTable(doc, {
         startY: y,
         body: [
           ["Marca/Modelo", vNome],
@@ -389,7 +389,7 @@ export default function SaleContractPdfButton({ contract }: Props) {
         styles: { lineColor: [200,200,200] as any },
         margin: { left: 14, right: 14 },
       })
-      y = doc.lastAutoTable.finalY + 12
+      y = (doc as any).lastAutoTable.finalY + 12
 
       signLine(14, sw, String(lead.name ?? "COMPRADOR").toUpperCase(), `CPF: ${lead.document ?? "—"} — COMPRADOR`)
       y += 28

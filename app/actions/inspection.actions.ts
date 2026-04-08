@@ -79,3 +79,50 @@ export async function createInspection(formData: FormData) {
     return { error: "Erro ao registrar vistoria." }
   }
 }
+
+export async function updateInspection(id: string, formData: FormData) {
+  try {
+    const km        = Number(formData.get("km"))
+    const fuelLevel = Number(formData.get("fuelLevel"))
+    const observations  = formData.get("observations") as string
+    const inspectorName = formData.get("inspectorName") as string
+
+    const tiresOk     = formData.get("tiresOk")     === "true"
+    const lightsOk    = formData.get("lightsOk")    === "true"
+    const wiperOk     = formData.get("wiperOk")     === "true"
+    const windowsOk   = formData.get("windowsOk")   === "true"
+    const bodyOk      = formData.get("bodyOk")      === "true"
+    const interiorOk  = formData.get("interiorOk")  === "true"
+    const documentsOk = formData.get("documentsOk") === "true"
+    const spareTireOk = formData.get("spareTireOk") === "true"
+    const jackOk      = formData.get("jackOk")      === "true"
+
+    await db.inspection.update({
+      where: { id },
+      data: {
+        km, fuelLevel,
+        observations: observations || null,
+        inspectorName,
+        tiresOk, lightsOk, wiperOk, windowsOk,
+        bodyOk, interiorOk, documentsOk, spareTireOk, jackOk,
+      },
+    })
+
+    revalidatePath("/admin/vistoria")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao atualizar vistoria." }
+  }
+}
+
+export async function deleteInspection(id: string) {
+  try {
+    await db.inspection.delete({ where: { id } })
+    revalidatePath("/admin/vistoria")
+    return { success: true }
+  } catch (error) {
+    console.error(error)
+    return { error: "Erro ao excluir vistoria." }
+  }
+}
