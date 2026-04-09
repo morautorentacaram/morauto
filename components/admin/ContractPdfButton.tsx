@@ -11,8 +11,24 @@ export default function ContractPdfButton({ contract }: Props) {
   async function handleExport() {
     setLoading(true)
     try {
-      const { default: jsPDF }    = await import("jspdf")
+      const { default: jsPDF }     = await import("jspdf")
       const { default: autoTable } = await import("jspdf-autotable")
+
+      // Carrega logo como base64
+      const logoBase64: string = await new Promise((resolve) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.onload = () => {
+          const canvas = document.createElement("canvas")
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          const ctx = canvas.getContext("2d")!
+          ctx.drawImage(img, 0, 0)
+          resolve(canvas.toDataURL("image/png"))
+        }
+        img.onerror = () => resolve("")
+        img.src = "/logo.png"
+      })
 
       const { reservation, customer } = contract
       const { vehicle } = reservation
@@ -58,17 +74,20 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setFillColor(...gold)
       doc.rect(0, 30, W, 1.2, "F")
 
-      // Logo text
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(22)
-      doc.setTextColor(...white)
-      doc.text("MORAUTO.", 14, 14)
-
+      // Logo
+      if (logoBase64) {
+        doc.addImage(logoBase64, "PNG", 12, 4, 44, 18)
+      } else {
+        doc.setFont("helvetica", "bold")
+        doc.setFontSize(22)
+        doc.setTextColor(...white)
+        doc.text("MORAUTO.", 14, 14)
+      }
       doc.setFontSize(8)
       doc.setFont("helvetica", "normal")
       doc.setTextColor(...gray)
-      doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS", 14, 20)
-      doc.text("CNPJ: 22.994.313/0001-45", 14, 25.5)
+      doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS", 14, 24)
+      doc.text("CNPJ: 22.994.313/0001-45", 14, 28.5)
 
       // Contract number
       doc.setFont("helvetica", "bold")

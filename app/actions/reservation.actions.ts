@@ -175,7 +175,7 @@ export async function updateReservationStatus(id: string, status: "PENDING" | "C
     await db.reservation.update({ where: { id }, data: { status } });
 
     // Auto-update vehicle status
-    if (status === "ACTIVE") {
+    if (status === "CONFIRMED" || status === "ACTIVE") {
       await db.vehicle.update({ where: { id: reservation.vehicleId }, data: { status: "RENTED" } });
     } else if (status === "COMPLETED" || status === "CANCELLED") {
       await db.vehicle.update({ where: { id: reservation.vehicleId }, data: { status: "AVAILABLE" } });
