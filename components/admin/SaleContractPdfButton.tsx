@@ -57,6 +57,22 @@ export default function SaleContractPdfButton({ contract }: Props) {
       const { default: jsPDF }       = await import("jspdf")
       const { default: autoTable }   = await import("jspdf-autotable")
 
+      // Carrega logo como base64 para embed no PDF
+      const logoBase64: string = await new Promise((resolve) => {
+        const img = new Image()
+        img.crossOrigin = "anonymous"
+        img.onload = () => {
+          const canvas = document.createElement("canvas")
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          const ctx = canvas.getContext("2d")!
+          ctx.drawImage(img, 0, 0)
+          resolve(canvas.toDataURL("image/png"))
+        }
+        img.onerror = () => resolve("")
+        img.src = "/logo.png"
+      })
+
       const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" }) as any
       const W   = doc.internal.pageSize.getWidth()
       const H   = doc.internal.pageSize.getHeight()
@@ -89,14 +105,19 @@ export default function SaleContractPdfButton({ contract }: Props) {
         doc.rect(0, 0, W, 22, "F")
         doc.setFillColor(212, 160, 23)
         doc.rect(0, 22, W, 0.8, "F")
-        doc.setFont("helvetica", "bold")
-        doc.setFontSize(15)
-        doc.setTextColor(212, 160, 23)
-        doc.text("MORAUTO.", 14, 10)
+        // Logo da Morauto (ou fallback texto)
+        if (logoBase64) {
+          doc.addImage(logoBase64, "PNG", 12, 3, 38, 16)
+        } else {
+          doc.setFont("helvetica", "bold")
+          doc.setFontSize(15)
+          doc.setTextColor(212, 160, 23)
+          doc.text("MORAUTO.", 14, 12)
+        }
         doc.setFont("helvetica", "normal")
         doc.setFontSize(7)
         doc.setTextColor(160, 160, 160)
-        doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS  ·  CNPJ: 22.994.313/0001-45", 14, 16)
+        doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS  ·  CNPJ: 22.994.313/0001-45", 14, 20)
         doc.setFont("helvetica", "bold")
         doc.setFontSize(8)
         doc.setTextColor(212, 160, 23)
