@@ -1,6 +1,7 @@
 "use server"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { notifySaleContractCreated } from "@/lib/whatsapp/notify"
 
 // ── Company constants (same as rental)
 const COMPANY = {
@@ -238,6 +239,15 @@ export async function generateSaleContract(leadId: string, formData: FormData) {
     await db.saleLead.update({ where: { id: leadId }, data: { status: "NEGOTIATING" } })
 
     revalidatePath("/admin/vendas")
+
+    notifySaleContractCreated({
+      customerPhone: lead.phone,
+      customerName: lead.name,
+      vehicleLabel: `${lead.vehicle.brand} ${lead.vehicle.model}${lead.vehicle.plate ? ` (${lead.vehicle.plate})` : ""}`,
+      totalValue: salePrice,
+      contractNumber: number,
+    }).catch(() => {})
+
     return { success: true, contractId: contract.id }
   } catch (e) {
     console.error(e)
@@ -290,6 +300,15 @@ export async function realizeSale(vehicleId: string, formData: FormData) {
     await db.saleVehicle.update({ where: { id: vehicleId }, data: { status: "RESERVED" } })
 
     revalidatePath("/admin/vendas")
+
+    notifySaleContractCreated({
+      customerPhone: lead.phone,
+      customerName: lead.name,
+      vehicleLabel: `${vehicle.brand} ${vehicle.model}${vehicle.plate ? ` (${vehicle.plate})` : ""}`,
+      totalValue: salePrice,
+      contractNumber: number,
+    }).catch(() => {})
+
     return { success: true, contractId: contract.id }
   } catch (e) {
     console.error(e)

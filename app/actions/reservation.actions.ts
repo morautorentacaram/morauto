@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { notifyReservationCreated, notifyReservationConfirmed } from "@/lib/whatsapp/notify";
 
 export async function createReservation(formData: FormData) {
   try {
@@ -42,6 +43,21 @@ export async function createReservation(formData: FormData) {
     })
 
     revalidatePath("/admin/reservas")
+
+    // Notificação WhatsApp — fire-and-forget (não bloqueia a resposta)
+    const customer = await db.customer.findUnique({
+      where: { id: customerId },
+      include: { user: true },
+    })
+    notifyReservationCreated({
+      customerPhone: customer?.phone,
+      customerName: customer?.user?.name ?? "Cliente",
+      vehicleLabel: `${vehicle.brand} ${vehicle.model}${vehicle.plate ? ` (${vehicle.plate})` : ""}`,
+      startDate,
+      endDate,
+      totalValue,
+    }).catch(() => {}) // silencia erros de notificação
+
     return { success: true }
   } catch (error) {
     console.error(error)
@@ -187,6 +203,27 @@ export async function updateReservationStatus(id: string, status: "PENDING" | "C
       if (!existing) {
         const { generateRentalContract } = await import("@/app/actions/contract.actions")
         await generateRentalContract(id)
+      }
+
+      // Notificação de confirmação — fire-and-forget
+      const full = await db.reservation.findUnique({
+        where: { id },
+        include: {
+          customer: { include: { user: true } },
+          vehicle: true,
+          contract: true,
+        },
+      })
+      if (full) {
+        notifyReservationConfirmed({
+          customerPhone: full.customer.phone,
+          customerName: full.customer.user?.name ?? "Cliente",
+          vehicleLabel: `${full.vehicle.brand} ${full.vehicle.model}${full.vehicle.plate ? ` (${full.vehicle.plate})` : ""}`,
+          startDate: full.startDate,
+          endDate: full.endDate,
+          totalValue: Number(full.totalValue),
+          contractNumber: full.contract?.number ?? null,
+        }).catch(() => {})
       }
     }
 
