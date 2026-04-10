@@ -1,14 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { FileDown, Loader2 } from "lucide-react"
+import { FileDown, Loader2, X } from "lucide-react"
 
 type Props = { contract: any }
 
 export default function ContractPdfButton({ contract }: Props) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]       = useState(false)
+  const [showModal, setShowModal]   = useState(false)
+  const [useCaucao, setUseCaucao]   = useState(true)
+  const [caucaoValue, setCaucaoValue] = useState<string>("")
+
+  // Pre-fill caução with category default when modal opens
+  function openModal() {
+    const defaultCaucao = Number(contract.reservation?.vehicle?.category?.depositValue ?? 0)
+    setCaucaoValue(defaultCaucao > 0 ? String(defaultCaucao) : "")
+    setUseCaucao(defaultCaucao > 0)
+    setShowModal(true)
+  }
 
   async function handleExport() {
+    setShowModal(false)
     setLoading(true)
     try {
       const { default: jsPDF }     = await import("jspdf")
@@ -34,6 +46,13 @@ export default function ContractPdfButton({ contract }: Props) {
       const { vehicle } = reservation
       const payment = reservation.payments?.[0]
 
+      // Data/hora exatos da geração do PDF
+      const now = new Date()
+      const generatedAt = now.toLocaleDateString("pt-BR") + " às " +
+        now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) + "h"
+      const cityDate = `Manaus, ${now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}, ` +
+        `às ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h`
+
       const doc  = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
       const W    = doc.internal.pageSize.getWidth()
       const H    = doc.internal.pageSize.getHeight()
@@ -54,18 +73,20 @@ export default function ContractPdfButton({ contract }: Props) {
       const days = Math.max(1, Math.ceil(
         (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / 86400000
       ))
-      const dailyRate    = Number(vehicle.category.dailyRate)
-      const totalValue   = Number(reservation.totalValue)
-      const depositValue = Number(vehicle.category.depositValue ?? 0)
-      const kmExcess     = 0.58
+      const dailyRate  = Number(vehicle.category.dailyRate)
+      const totalValue = Number(reservation.totalValue)
+      const kmExcess   = 0.58
+
+      // Caução: usa o valor do modal (pode ser zero se usuário optou por não incluir)
+      const depositValue = useCaucao ? Number(caucaoValue || 0) : 0
 
       const paymentLabel =
-        payment?.status === "PAID"                 ? "PAGO"
-        : payment?.method === "PIX"                ? "PIX"
-        : payment?.method === "CREDIT_CARD"        ? "Cartão de Crédito"
-        : payment?.method === "DEBIT_CARD"         ? "Cartão de Débito"
-        : payment?.method === "CASH"               ? "Dinheiro"
-        : payment?.method === "BANK_TRANSFER"      ? "Transferência Bancária"
+        payment?.status === "PAID"            ? "PAGO"
+        : payment?.method === "PIX"           ? "PIX"
+        : payment?.method === "CREDIT_CARD"   ? "Cartão de Crédito"
+        : payment?.method === "DEBIT_CARD"    ? "Cartão de Débito"
+        : payment?.method === "CASH"          ? "Dinheiro"
+        : payment?.method === "BANK_TRANSFER" ? "Transferência Bancária"
         : "A combinar"
 
       // ── Header ─────────────────────────────────────────────────────────────
@@ -74,7 +95,6 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setFillColor(...gold)
       doc.rect(0, 30, W, 1.2, "F")
 
-      // Logo
       if (logoBase64) {
         doc.addImage(logoBase64, "PNG", 12, 4, 44, 18)
       } else {
@@ -89,7 +109,7 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.text("LOCADORA DE VEÍCULOS E MÁQUINAS", 14, 24)
       doc.text("CNPJ: 22.994.313/0001-45", 14, 28.5)
 
-      // Contract number
+      // Contract number + gerado em (data + hora)
       doc.setFont("helvetica", "bold")
       doc.setFontSize(9)
       doc.setTextColor(...gold)
@@ -97,7 +117,7 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setFont("helvetica", "normal")
       doc.setFontSize(7)
       doc.setTextColor(...gray)
-      doc.text(`Gerado em ${new Date(contract.createdAt).toLocaleDateString("pt-BR")}`, W - 14, 20, { align: "right" })
+      doc.text(`Gerado em ${generatedAt}`, W - 14, 20, { align: "right" })
       if (contract.signedAt) {
         doc.setTextColor(34, 197, 94)
         doc.text(`✓ Assinado em ${new Date(contract.signedAt).toLocaleDateString("pt-BR")}`, W - 14, 25.5, { align: "right" })
@@ -190,7 +210,7 @@ export default function ContractPdfButton({ contract }: Props) {
           ["Duração",         `${days} dia(s)`],
           ["Diária",          fmt(dailyRate)],
           ["Valor Total",     fmt(totalValue)],
-          ...(depositValue > 0 ? [["Caução/Garantia", fmt(depositValue)]] : []),
+          ...(depositValue > 0 ? [["Caução / Garantia", fmt(depositValue)]] : []),
           ["Forma de Pagamento", paymentLabel],
           ["Franquia km/dia", "214,28 km/dia"],
           ["Km excedente",    `${fmt(kmExcess)} por km`],
@@ -223,10 +243,9 @@ export default function ContractPdfButton({ contract }: Props) {
         { n: "10.", t: "RESTRIÇÃO TERRITORIAL", b: "VEÍCULO NÃO AUTORIZADO A ULTRAPASSAR A FRONTEIRA BRASIL/VENEZUELA — uso restrito à cidade de Manaus-AM, salvo autorização expressa por escrito." },
       ]
 
-      const clauseBody = clauses.map((c) => [`${c.n} ${c.t}`, c.b])
       autoTable(doc, {
         startY: y,
-        body: clauseBody,
+        body: clauses.map((c) => [`${c.n} ${c.t}`, c.b]),
         theme: "plain",
         bodyStyles: { fontSize: 7, textColor: ink as any, cellPadding: [1.5, 2.5] },
         columnStyles: { 0: { fontStyle: "bold", cellWidth: 42, fillColor: [248,248,248] } },
@@ -241,20 +260,24 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setFont("helvetica", "normal")
       doc.setFontSize(7)
       doc.setTextColor(...ink)
-      const exclusaoText = `O Locatário é 100% responsável por qualquer dano, roubo, furto ou assistência. Será responsável pelo total dos danos independente de culpa, na eventualidade de: a) Uso Indevido. b) Danos aos vidros, rodas, bancos e/ou acessórios. c) Dirigir em violação de qualquer lei de trânsito. d) Permitir uso por motorista adicional não autorizado por escrito. e) O cliente está ciente que o veículo NÃO possui seguro. f) O locatário é responsável pela manutenção do veículo.`
-      const exclusaoLines = doc.splitTextToSize(exclusaoText, W - 28)
+      const exclusaoLines = doc.splitTextToSize(
+        `O Locatário é 100% responsável por qualquer dano, roubo, furto ou assistência. Será responsável pelo total dos danos independente de culpa, na eventualidade de: a) Uso Indevido. b) Danos aos vidros, rodas, bancos e/ou acessórios. c) Dirigir em violação de qualquer lei de trânsito. d) Permitir uso por motorista adicional não autorizado por escrito. e) O cliente está ciente que o veículo NÃO possui seguro. f) O locatário é responsável pela manutenção do veículo.`,
+        W - 28
+      )
       doc.text(exclusaoLines, 14, y)
       y += exclusaoLines.length * 4 + 4
 
       // ── Autorização de Débito ───────────────────────────────────────────────
       if (y > 220) { doc.addPage(); y = 20 }
       sectionTitle("Autorização de Débito")
-      const autorizacaoText = `Como cliente titular, autorizo a MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA — CNPJ 22.994.313/0001-45 — a debitar nos meus cartões de crédito/débito ou emitir cobrança em meu nome para reembolsar multas de trânsito, combustível, avarias, limpeza e outras despesas adicionais apontadas no check-list de devolução, acrescidas da taxa administrativa prevista neste contrato. Autorizo ainda a informar meus dados aos órgãos de trânsito como CONDUTOR(A) DO VEÍCULO LOCADO, nos termos da Resolução CONTRAN N.461/2013.`
-      const autLines = doc.splitTextToSize(autorizacaoText, W - 28)
+      const autLines = doc.splitTextToSize(
+        `Como cliente titular, autorizo a MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA — CNPJ 22.994.313/0001-45 — a debitar nos meus cartões de crédito/débito ou emitir cobrança em meu nome para reembolsar multas de trânsito, combustível, avarias, limpeza e outras despesas adicionais apontadas no check-list de devolução, acrescidas da taxa administrativa prevista neste contrato. Autorizo ainda a informar meus dados aos órgãos de trânsito como CONDUTOR(A) DO VEÍCULO LOCADO, nos termos da Resolução CONTRAN N.461/2013.`,
+        W - 28
+      )
       doc.text(autLines, 14, y)
       y += autLines.length * 4 + 4
 
-      // ── Foro ───────────────────────────────────────────────────────────────
+      // ── Foro + data/hora ───────────────────────────────────────────────────
       if (y > 240) { doc.addPage(); y = 20 }
       doc.setFont("helvetica", "bold")
       doc.setFontSize(7.5)
@@ -264,17 +287,13 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.text("Para dirimir quaisquer controvérsias, as partes elegem o foro da comarca de Manaus — Amazonas.", 14 + doc.getTextWidth("DO FORO: "), y)
       y += 6
 
-      const cityDate = `Manaus, ${new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}`
       doc.text(cityDate, W / 2, y, { align: "center" })
       y += 12
 
       // ── Assinaturas ─────────────────────────────────────────────────────────
       if (y + 40 > H - 20) { doc.addPage(); y = 20 }
 
-      // Draw signature boxes
       const boxW = (W - 42) / 2
-
-      // Left — Locadora
       doc.setDrawColor(...gray)
       doc.setLineWidth(0.3)
       doc.line(14, y + 18, 14 + boxW, y + 18)
@@ -287,7 +306,6 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setTextColor(...gray)
       doc.text("(LOCADORA)  CNPJ 22.994.313/0001-45", 14 + boxW / 2, y + 27, { align: "center" })
 
-      // Right — Locatário
       const xR = W - 14 - boxW
       doc.line(xR, y + 18, xR + boxW, y + 18)
       doc.setFont("helvetica", "bold")
@@ -298,10 +316,9 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.setFontSize(6.5)
       doc.setTextColor(...gray)
       doc.text(`(LOCATÁRIO)  CPF/CNPJ: ${customer.document}`, xR + boxW / 2, y + 27, { align: "center" })
-
       y += 35
 
-      // Witnesses
+      // Testemunhas
       const wBoxW = (W - 42) / 2
       doc.setFont("helvetica", "normal")
       doc.setFontSize(7)
@@ -310,17 +327,15 @@ export default function ContractPdfButton({ contract }: Props) {
       doc.text("(Nome, RG e assinatura da Testemunha 1)", 14 + wBoxW / 2, y + 16, { align: "center" })
       doc.line(xR, y + 12, xR + wBoxW, y + 12)
       doc.text("(Nome, RG e assinatura da Testemunha 2)", xR + wBoxW / 2, y + 16, { align: "center" })
-
       y += 24
 
-      // Legal notes
       doc.setFontSize(6.5)
       doc.setTextColor(...gray)
       doc.text("Nota: 1. A Locação de Coisas rege-se pelo previsto nos Arts. 1188 a 1215 do Código Civil.", 14, y)
       y += 4
       doc.text("2. Art. 1192 do Código Civil.   3. Art. 1196 do Código Civil.", 14, y)
 
-      // ── Footer all pages ──────────────────────────────────────────────────
+      // ── Footer em todas as páginas ────────────────────────────────────────
       const pageCount = (doc as any).internal.getNumberOfPages()
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i)
@@ -345,13 +360,74 @@ export default function ContractPdfButton({ contract }: Props) {
   }
 
   return (
-    <button
-      onClick={handleExport}
-      disabled={loading}
-      className="flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-4 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60"
-    >
-      {loading ? <Loader2 size={15} className="animate-spin" /> : <FileDown size={15} />}
-      {loading ? "Gerando PDF..." : "Baixar Contrato PDF"}
-    </button>
+    <>
+      {/* Botão principal */}
+      <button
+        onClick={openModal}
+        disabled={loading}
+        className="flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8860b] text-black font-bold px-4 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60"
+      >
+        {loading ? <Loader2 size={15} className="animate-spin" /> : <FileDown size={15} />}
+        {loading ? "Gerando PDF..." : "Baixar Contrato PDF"}
+      </button>
+
+      {/* Modal de caução */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-bold text-base">Opções do Contrato</h2>
+              <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Caução toggle */}
+            <div className="mb-5">
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <div
+                  onClick={() => setUseCaucao(v => !v)}
+                  className={`relative w-10 h-5 rounded-full transition-colors ${useCaucao ? "bg-amber-500" : "bg-zinc-600"}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${useCaucao ? "translate-x-5" : "translate-x-0"}`} />
+                </div>
+                <span className="text-white text-sm font-medium">Incluir Caução / Garantia</span>
+              </label>
+            </div>
+
+            {useCaucao && (
+              <div className="mb-5">
+                <label className="block text-zinc-400 text-xs mb-1.5">Valor da Caução (R$)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={caucaoValue}
+                  onChange={e => setCaucaoValue(e.target.value)}
+                  placeholder="Ex: 500.00"
+                  className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                <FileDown size={14} />
+                Gerar PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
