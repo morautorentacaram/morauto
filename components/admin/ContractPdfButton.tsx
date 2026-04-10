@@ -215,7 +215,7 @@ export default function ContractPdfButton({ contract }: Props) {
           ["Forma de Pagamento", paymentLabel],
           ["Franquia km/dia", "214,28 km/dia"],
           ["Km excedente",    `${fmt(kmExcess)} por km`],
-          ["Limite semanal",  "1.500 km/semana"],
+          ["Limite semanal",  "1.000 km/semana"],
           ["Taxa administrativa", "10% sobre serviços adicionais"],
         ],
         theme: "striped",

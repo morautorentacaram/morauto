@@ -185,7 +185,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
               <InfoCell label="Franquia km/dia" value="214,28 km/dia" />
               <InfoCell label="Km excedente"   value="R$ 0,58 por km" />
               <InfoCell label="Taxa admin."     value={`10% (${fmt(tax10pct)}) sobre extras`} />
-              <InfoCell label="Limite semanal" value="1.500 km/semana" />
+              <InfoCell label="Limite semanal" value="1.000 km/semana" />
               <InfoCell
                 label="Forma de Pagamento"
                 value={paymentLabel}
@@ -200,8 +200,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
             <div className="mt-3 space-y-2">
               {[
                 { n: "1", t: "REABASTECIMENTO", b: "Em caso de devolução com combustível inferior ao recebido, o tanque será completado (gasolina, mesmo que bicombustível). O abastecimento e taxas serão cobrados no contrato. O combustível gasto no percurso até a entrega é de responsabilidade do cliente." },
-                { n: "2", t: "LIMPEZA DO VEÍCULO", b: "Deve ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 35,00. Manchas nos forros ou odores: higienização a partir de R$ 150,00." },
-                { n: "3", t: "DOCUMENTOS PERDIDOS (Não devolvidos)", b: "Custo de R$ 250,00 + 3 (três) diárias de locação caso não sejam devolvidos junto com o veículo." },
+                { n: "2", t: "LIMPEZA DO VEÍCULO", b: "Deve ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 50,00. Manchas nos forros ou odores: higienização a partir de R$ 300,00." },
+                { n: "3", t: "DOCUMENTOS PERDIDOS (Não devolvidos)", b: "Custo de R$ 300,00 + 3 (três) diárias de locação caso não sejam devolvidos junto com o veículo." },
                 { n: "4", t: "RETIRADA DE VEÍCULO REBOCADO", b: "Valor de R$ 500,00, fora os custos de multa e reboque, em casos de culpabilidade do condutor." },
                 { n: "5", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 30,00 por evento (Entrega ou Devolução)." },
                 { n: "6", t: "CHAVE DO VEÍCULO", b: "O desaparecimento da chave terá reposição cobrada conforme o modelo (Chave codificada ou Integrada com alarme)." },
