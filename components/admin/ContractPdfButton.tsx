@@ -6,17 +6,43 @@ import { FileDown, Loader2, X } from "lucide-react"
 type Props = { contract: any }
 
 export default function ContractPdfButton({ contract }: Props) {
-  const [loading, setLoading]       = useState(false)
-  const [showModal, setShowModal]   = useState(false)
-  const [useCaucao, setUseCaucao]   = useState(true)
+  const [loading, setLoading]         = useState(false)
+  const [showModal, setShowModal]     = useState(false)
+  const [useCaucao, setUseCaucao]     = useState(true)
   const [caucaoValue, setCaucaoValue] = useState<string>("")
+  const [returnDate, setReturnDate]   = useState<string>("")
+  const [returnTime, setReturnTime]   = useState<string>("")
 
-  // Pre-fill caução with category default when modal opens
+  // Pre-fill modal values when opening
   function openModal() {
+    const TZ = "America/Manaus"
     const defaultCaucao = Number(contract.reservation?.vehicle?.category?.depositValue ?? 0)
     setCaucaoValue(defaultCaucao > 0 ? String(defaultCaucao) : "")
     setUseCaucao(defaultCaucao > 0)
+
+    // Pré-preenche devolução: data do endDate + horário do startDate (mesmo horário da retirada)
+    const start = new Date(contract.reservation.startDate)
+    const end   = new Date(contract.reservation.endDate)
+
+    // Data de devolução no formato YYYY-MM-DD (fuso Manaus)
+    const endLocal = end.toLocaleDateString("pt-BR", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+    const [d, m, y] = endLocal.split("/")
+    setReturnDate(`${y}-${m}-${d}`)
+
+    // Horário da retirada no formato HH:MM (fuso Manaus) — mesmo horário para devolução
+    const startTime = start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+    setReturnTime(startTime.replace("h", "").trim())
+
     setShowModal(true)
+  }
+
+  /** Combina returnDate + returnTime em um objeto Date para usar no PDF */
+  function getReturnDateTime(): Date {
+    if (returnDate && returnTime) {
+      // Monta como horário de Manaus (UTC-4)
+      return new Date(`${returnDate}T${returnTime}:00-04:00`)
+    }
+    return new Date(contract.reservation.endDate)
   }
 
   async function handleExport() {
@@ -71,8 +97,9 @@ export default function ContractPdfButton({ contract }: Props) {
         return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}h ${fmtDate(dt)}`
       }
 
+      const returnDateTime = getReturnDateTime()
       const days = Math.max(1, Math.ceil(
-        (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / 86400000
+        (returnDateTime.getTime() - new Date(reservation.startDate).getTime()) / 86400000
       ))
       const dailyRate  = Number(vehicle.category.dailyRate)
       const totalValue = Number(reservation.totalValue)
@@ -207,7 +234,7 @@ export default function ContractPdfButton({ contract }: Props) {
         head: [["Campo", "Valor"]],
         body: [
           ["Retirada",        fmtDateTime(reservation.startDate)],
-          ["Devolução",       fmtDateTime(reservation.endDate)],
+          ["Devolução",       fmtDateTime(returnDateTime)],
           ["Duração",         `${days} dia(s)`],
           ["Diária",          fmt(dailyRate)],
           ["Valor Total",     fmt(totalValue)],
@@ -381,6 +408,25 @@ export default function ContractPdfButton({ contract }: Props) {
               <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
                 <X size={18} />
               </button>
+            </div>
+
+            {/* Devolução — data e hora */}
+            <div className="mb-5">
+              <p className="text-zinc-400 text-xs mb-2 font-medium">Data e horário de devolução</p>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={returnDate}
+                  onChange={e => setReturnDate(e.target.value)}
+                  className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                />
+                <input
+                  type="time"
+                  value={returnTime}
+                  onChange={e => setReturnTime(e.target.value)}
+                  className="w-28 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
             </div>
 
             {/* Caução toggle */}
