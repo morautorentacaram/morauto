@@ -46,12 +46,13 @@ export default function ContractPdfButton({ contract }: Props) {
       const { vehicle } = reservation
       const payment = reservation.payments?.[0]
 
-      // Data/hora exatos da geração do PDF
+      // Data/hora exatos da geração do PDF — fuso de Manaus (UTC-4)
+      const TZ = "America/Manaus"
       const now = new Date()
-      const generatedAt = now.toLocaleDateString("pt-BR") + " às " +
-        now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) + "h"
-      const cityDate = `Manaus, ${now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}, ` +
-        `às ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h`
+      const generatedAt = now.toLocaleDateString("pt-BR", { timeZone: TZ }) + " às " +
+        now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ }) + "h"
+      const cityDate = `Manaus, ${now.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric", timeZone: TZ })}, ` +
+        `às ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}h`
 
       const doc  = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
       const W    = doc.internal.pageSize.getWidth()
@@ -64,10 +65,10 @@ export default function ContractPdfButton({ contract }: Props) {
       const ink   = [30,  30,  30]  as [number, number, number]
 
       const fmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
-      const fmtDate = (d: string | Date) => new Date(d).toLocaleDateString("pt-BR")
+      const fmtDate = (d: string | Date) => new Date(d).toLocaleDateString("pt-BR", { timeZone: TZ })
       const fmtDateTime = (d: string | Date) => {
         const dt = new Date(d)
-        return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}h ${fmtDate(dt)}`
+        return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}h ${fmtDate(dt)}`
       }
 
       const days = Math.max(1, Math.ceil(
