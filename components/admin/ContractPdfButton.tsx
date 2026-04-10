@@ -232,8 +232,8 @@ export default function ContractPdfButton({ contract }: Props) {
 
       const clauses = [
         { n: "1.", t: "REABASTECIMENTO", b: "No caso de devolução do veículo com quantidade de combustível inferior à registrada no momento de entrega, o tanque será completado com gasolina (mesmo que bicombustível), sendo o valor do abastecimento e taxas cobrados no contrato. O combustível gasto no percurso até o local de entrega é de responsabilidade do cliente." },
-        { n: "2.", t: "LIMPEZA DO VEÍCULO", b: "Deverá ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 35,00. Em caso de manchas ou odores: higienização a partir de R$ 150,00 ou valor superior." },
-        { n: "3.", t: "DOCUMENTOS PERDIDOS", b: "Caso não devolvidos junto com o veículo: custo de R$ 250,00 + 3 diárias de locação." },
+        { n: "2.", t: "LIMPEZA DO VEÍCULO", b: "Deverá ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 50,00. Em caso de manchas ou odores: higienização a partir de R$ 300,00 ou valor superior." },
+        { n: "3.", t: "DOCUMENTOS PERDIDOS", b: "Caso não devolvidos junto com o veículo: custo de R$ 300,00 + 3 diárias de locação." },
         { n: "4.", t: "VEÍCULO REBOCADO", b: "Retirada de veículo rebocado: R$ 500,00 + custos de multa e reboque, em casos de culpabilidade do condutor." },
         { n: "5.", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 30,00 por evento." },
         { n: "6.", t: "CHAVE DO VEÍCULO", b: "O desaparecimento da chave terá reposição cobrada conforme modelo (chave codificada ou integrada com alarme)." },
