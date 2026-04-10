@@ -24,10 +24,8 @@ export default function ContractPdfButton({ contract }: Props) {
     const start = new Date(contract.reservation.startDate)
     const end   = new Date(contract.reservation.endDate)
 
-    // Data de devolução no formato YYYY-MM-DD (fuso Manaus)
-    const endLocal = end.toLocaleDateString("pt-BR", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
-    const [d, m, y] = endLocal.split("/")
-    setReturnDate(`${y}-${m}-${d}`)
+    // Data de devolução: usa a data UTC do endDate (evita shift de fuso — meia-noite UTC = dia anterior em Manaus)
+    setReturnDate(end.toISOString().slice(0, 10))
 
     // Horário da retirada no formato HH:MM (fuso Manaus) — mesmo horário para devolução
     const startTime = start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
