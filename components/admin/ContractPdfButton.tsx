@@ -261,7 +261,7 @@ export default function ContractPdfButton({ contract }: Props) {
         { n: "2.", t: "LIMPEZA DO VEÍCULO", b: "Deverá ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 50,00. Em caso de manchas ou odores: higienização a partir de R$ 300,00 ou valor superior." },
         { n: "3.", t: "DOCUMENTOS PERDIDOS", b: "Caso não devolvidos junto com o veículo: custo de R$ 300,00 + 3 diárias de locação." },
         { n: "4.", t: "VEÍCULO REBOCADO", b: "Retirada de veículo rebocado: R$ 500,00 + custos de multa e reboque, em casos de culpabilidade do condutor." },
-        { n: "5.", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 30,00 por evento." },
+        { n: "5.", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 50,00 por evento." },
         { n: "6.", t: "CHAVE DO VEÍCULO", b: "O desaparecimento da chave terá reposição cobrada conforme modelo (chave codificada ou integrada com alarme)." },
         { n: "7.", t: "HORAS EXTRAS", b: "A diária é de 24 horas. Hora extra = 1/6 da diária. Após a 6ª hora extra, cobra-se diária integral. Proteções e serviços adicionais incidem integralmente." },
         { n: "8.", t: "RESPONSABILIDADE POR MULTAS", b: "O Locatário é responsável por todas as multas de trânsito incidentes durante o período de locação, nos termos do art. 257 do CTB." },

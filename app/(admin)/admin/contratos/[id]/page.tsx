@@ -212,7 +212,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 { n: "2", t: "LIMPEZA DO VEÍCULO", b: "Deve ser devolvido nas mesmas condições de limpeza. Em devolução divergente: lavagem simples R$ 50,00. Manchas nos forros ou odores: higienização a partir de R$ 300,00." },
                 { n: "3", t: "DOCUMENTOS PERDIDOS (Não devolvidos)", b: "Custo de R$ 300,00 + 3 (três) diárias de locação caso não sejam devolvidos junto com o veículo." },
                 { n: "4", t: "RETIRADA DE VEÍCULO REBOCADO", b: "Valor de R$ 500,00, fora os custos de multa e reboque, em casos de culpabilidade do condutor." },
-                { n: "5", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 30,00 por evento (Entrega ou Devolução)." },
+                { n: "5", t: "TAXAS DE ENTREGA/DEVOLUÇÃO", b: "Veículo entregue ou recebido fora da locadora em horário não comercial: taxa de R$ 50,00 por evento (Entrega ou Devolução)." },
                 { n: "6", t: "CHAVE DO VEÍCULO", b: "O desaparecimento da chave terá reposição cobrada conforme o modelo (Chave codificada ou Integrada com alarme)." },
                 { n: "7", t: "HORAS EXTRAS", b: "A diária é de 24 horas. Hora extra = 1/6 da diária por hora. Após a 6ª hora extra, cobra-se diária integral. A Locadora não se responsabiliza por veículos trancados com a chave em seu interior." },
                 { n: "8", t: "DEVOLUÇÃO DE VALORES", b: "A MORAUTO reserva-se o direito de deixar crédito para futura locação ou devolver o valor via DOC/TED em até 30 dias após o fechamento do contrato, com cobrança da Taxa de Reembolso." },
