@@ -10,6 +10,8 @@ const REP = {
   rg:   "337050899 SSP-CE",
   cpf:  "877.683.483-20",
 }
+const TESTEMUNHA = { name: "CARLA NASCIMENTO LIMA", cpf: "708.576.522-49" }
+const EMPRESA = "MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA"
 
 const fmt  = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v)
 const fmtD = (d: string | Date) => new Date(d).toLocaleDateString("pt-BR")
@@ -64,14 +66,19 @@ async function gerarAVista(contract: any) {
   try { payInfo = JSON.parse(contract.paymentDetails ?? "{}") } catch {}
 
   const entryAmount      = payInfo.entryAmount      ? Number(payInfo.entryAmount)      : null
-  const secondPayment    = payInfo.secondPayment     ? Number(payInfo.secondPayment)    : null
-  const secondPayDate    = payInfo.secondPayDate     ?? null
+  const entryMethod      = payInfo.entryMethod      ?? contract.paymentMethod ?? "transferência bancária"
   const installmentCount = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
   const installmentAmount= payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
-  const installmentStart = payInfo.installmentStart  ?? null
   const deliveryDate     = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
   const vehicleKm        = payInfo.vehicleKm         ?? String(vehicle.km ?? 0)
   const rg               = payInfo.rg                ?? "___________"
+  const observations     = payInfo.observations      ?? ""
+  // Parcelas individuais (novo formato) ou geradas a partir de count/start
+  const installments: Array<{number: number; value: string; date: string}> =
+    payInfo.installments ? (Array.isArray(payInfo.installments) ? payInfo.installments : JSON.parse(payInfo.installments)) : []
+  // Veículos como entrada
+  const tradeInVehicles: Array<{brand: string; model: string; year: string; plate: string; renavam: string; chassi: string; observations: string}> =
+    payInfo.tradeInVehicles ? (Array.isArray(payInfo.tradeInVehicles) ? payInfo.tradeInVehicles : JSON.parse(payInfo.tradeInVehicles)) : []
 
   let y = 0
 
@@ -100,7 +107,7 @@ async function gerarAVista(contract: any) {
 
       // Company info left
       doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(255, 255, 255)
-      doc.text("MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS EIRELI", 14, H - fh + 5)
+      doc.text(EMPRESA, 14, H - fh + 5)
       doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(180, 180, 180)
       doc.text("CNPJ: 22.994.313/0001-45", 14, H - fh + 9)
       doc.text("Av. Álvaro Maia - 176 A - Presidente Vargas - CEP: 69.025-360", 14, H - fh + 13)
@@ -165,10 +172,10 @@ async function gerarAVista(contract: any) {
     doc.line(14 + sw + 14, y, 14 + sw * 2 + 14, y)
     doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(20, 20, 20)
     doc.text("RAIMUNDO VASCONCELOS MORAIS", 14 + sw / 2, y + 4.5, { align: "center" })
-    doc.text("Ana Paula O. Baima", 14 + sw + 14 + sw / 2, y + 4.5, { align: "center" })
+    doc.text(TESTEMUNHA.name, 14 + sw + 14 + sw / 2, y + 4.5, { align: "center" })
     doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(80, 80, 80)
-    doc.text("VENDEDOR MORAUTO L. DE VEÍCULOS", 14 + sw / 2, y + 8.5, { align: "center" })
-    doc.text("CPF 700.922.052-24", 14 + sw + 14 + sw / 2, y + 8.5, { align: "center" })
+    doc.text("VENDEDOR MORAUTO L. DE VEÍCULOS LTDA.", 14 + sw / 2, y + 8.5, { align: "center" })
+    doc.text(`CPF ${TESTEMUNHA.cpf}`, 14 + sw + 14 + sw / 2, y + 8.5, { align: "center" })
     y += 18
 
     // Comprador | CPF
@@ -189,7 +196,7 @@ async function gerarAVista(contract: any) {
   title("CONTRATO DE COMPRA E VENDA DE VEÍCULO USADO")
 
   // Vendedor
-  para(`VENDEDOR: MORAUTO LOCADORA DE VEÍCULOS E MAQUINAS EIRELLI-ME, empresa comercial da praça de Manaus, Estado do Amazonas, estabelecida à Avenida Álvaro Maia, Nº176-A, Bairro: Presidente Vargas, CEP:69025-360, Legalmente inscrita no CNPJ sob o nº 22.994.313/0001-45, neste ato representada por seu sócio administrador ${REP.name}, portador da cédula de identidade RG n.º ${REP.rg}, inscrito no CPF sob o n.º ${REP.cpf}.`, true)
+  para(`VENDEDOR: ${EMPRESA}, empresa comercial da praça de Manaus, Estado do Amazonas, estabelecida à Avenida Álvaro Maia, Nº176-A, Bairro: Presidente Vargas, CEP:69025-360, Legalmente inscrita no CNPJ sob o nº 22.994.313/0001-45, neste ato representada por seu sócio administrador ${REP.name}, portador da cédula de identidade RG n.º ${REP.rg}, inscrito no CPF sob o n.º ${REP.cpf}.`, true)
 
   // Comprador
   const vNome = `${vehicle.brand} ${vehicle.model}${vehicle.version ? " " + vehicle.version : ""}`
@@ -213,20 +220,47 @@ async function gerarAVista(contract: any) {
 
   // Build payment text
   const ext = valorPorExtenso(salePrice)
-  let pagTxt = `A venda será feita pelo preço e justo ${fmt(salePrice)} (${ext.toUpperCase()} REAIS)`
+  let pagTxt = `A venda será feita pelo preço e justo ${fmt(salePrice)} (${ext.toUpperCase()} REAIS), sendo que, por conta do valor estabelecido, o VENDEDOR recebe do COMPRADOR neste ato`
   if (entryAmount) {
-    pagTxt += `, sendo que, por conta do valor estabelecido, o VENDEDOR recebe do COMPRADOR neste ato a entrada no valor de ${fmt(entryAmount)} (${valorPorExtenso(entryAmount).toUpperCase()}) em transferência bancária pix`
-    if (secondPayment && secondPayDate) {
-      pagTxt += `, e mais ${fmt(secondPayment)} (${valorPorExtenso(secondPayment).toUpperCase()} REAIS) para a data ${secondPayDate} em transferência bancária pix para a conta do VENDEDOR`
-    }
-    if (installmentCount && installmentAmount) {
-      pagTxt += `, e o restante em ${installmentCount} parcelas de ${fmt(installmentAmount)} (${valorPorExtenso(installmentAmount).toUpperCase()} REAIS) cada`
-    }
-    pagTxt += `. Na qual dá-se total e plena quitação.`
+    pagTxt += ` o valor de entrada ${fmt(entryAmount)} (${valorPorExtenso(entryAmount).toUpperCase()} REAIS) em ${entryMethod.toUpperCase()} PARA A CONTA DO VENDEDOR`
+  }
+  if (tradeInVehicles.length > 0) {
+    tradeInVehicles.forEach((tv) => {
+      pagTxt += `, E MAIS UM VEÍCULO MODELO ${tv.brand?.toUpperCase()} ${tv.model?.toUpperCase()} ANO FAB ${tv.year}. ANO MOD ${tv.year}, COD RENAVAM ${tv.renavam ?? "—"}, PLACA ${tv.plate ?? "—"}, CHASSI ${tv.chassi ?? "—"}`
+    })
+  }
+  if (installments.length > 0) {
+    pagTxt += `, e assim devendo o restante a ser pago em notas promissórias. Após efetivos pagamentos dá-se total e plena quitação.`
+  } else if (installmentCount && installmentAmount) {
+    pagTxt += `, e o restante em ${installmentCount} promissórias de ${fmt(installmentAmount)} (${valorPorExtenso(installmentAmount).toUpperCase()} REAIS) cada. Após efetivos pagamentos dá-se total e plena quitação.`
   } else {
     pagTxt += `. Na qual dá-se total e plena quitação.`
   }
   clausula("Cláusula 5ª.", pagTxt)
+
+  // Parcelas individuais
+  if (installments.length > 0) {
+    installments.forEach((inst) => {
+      para(`${inst.number}º. PROMISSÓRIA NO VALOR ${fmt(Number(inst.value))} (${valorPorExtenso(Number(inst.value)).toUpperCase()} REAIS) PARA O DIA ${inst.date}.`)
+    })
+    y += 1
+  }
+
+  // Veículos como entrada — observação
+  if (tradeInVehicles.length > 0) {
+    tradeInVehicles.forEach((tv) => {
+      if (tv.observations) {
+        para(`OBSERVAÇÃO: ${tv.observations}`)
+      }
+    })
+    y += 1
+  }
+
+  // Observações gerais
+  if (observations) {
+    para(`OBSERVAÇÃO: ${observations}`)
+    y += 1
+  }
 
   sectionTitle("CONDIÇÕES GERAIS")
   clausula("Cláusula 6ª.", `Em caso de MULTAS, IPVA, ROUBOS, PONTUAÇÃO NA CNH E ACIDENTES DE TRÂNSITO até esta data foi, responsabilidade do VENDEDOR (A). Após esta data é, do COMPRADOR (A).`)
@@ -257,7 +291,7 @@ async function gerarAVista(contract: any) {
   para(`Declaro para os devidos fins que examinei e recebi, nesta data o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas. Declaro ainda estar ciente de que se trata de um veículo usado, no estado em que se encontra e com as seguintes garantias abaixo especificadas.`)
   y += 2
 
-  const detalhes = `VEÍCULO ${vNome.toUpperCase()}, ANO FAB ${vehicle.year}/ MODELO ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, CHASSI ${vehicle.chassi ?? "N/I"}, COMBUSTÍVEL ${vehicle.fuelType ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, KM ${Number(vehicleKm).toLocaleString("pt-BR")}, COMPRADOR ${String(lead.name ?? "").toUpperCase()}${lead.document ? ", CPF/CNPJ: " + lead.document : ""}.`
+  const detalhes = `VEÍCULO ${vNome.toUpperCase()}, ANO FAB ${vehicle.year}/ MODELO ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, CHASSI ${vehicle.chassi ?? "N/I"}, COMBUSTÍVEL ${vehicle.fuelType ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, KM ${Number(vehicleKm).toLocaleString("pt-BR")}, COMPRADOR ${String(lead.name ?? "").toUpperCase()}${lead.document ? ", CPF/CNPJ: " + lead.document : ""}. Data de entrega: ${deliveryDate}.`
   para(detalhes, true)
   y += 4
 
@@ -327,14 +361,20 @@ async function gerarReservaDominio(contract: any) {
   let payInfo: Record<string, string> = {}
   try { payInfo = JSON.parse(contract.paymentDetails ?? "{}") } catch {}
 
-  const entryAmount      = payInfo.entryAmount      ? Number(payInfo.entryAmount)      : null
-  const secondPayment    = payInfo.secondPayment     ? Number(payInfo.secondPayment)    : null
-  const secondPayDate    = payInfo.secondPayDate     ?? null
-  const installmentCount = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
-  const installmentAmount= payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
-  const installmentStart = payInfo.installmentStart  ?? null
-  const deliveryDate     = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
-  const vehicleKm        = payInfo.vehicleKm         ?? String(vehicle.km ?? 0)
+  const entryAmount       = payInfo.entryAmount      ? Number(payInfo.entryAmount)      : null
+  const entryMethodD      = payInfo.entryMethod      ?? contract.paymentMethod ?? "transferência bancária"
+  const secondPayment     = payInfo.secondPayment     ? Number(payInfo.secondPayment)    : null
+  const secondPayDate     = payInfo.secondPayDate     ?? null
+  const installmentCount  = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
+  const installmentAmount = payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
+  const installmentStart  = payInfo.installmentStart  ?? null
+  const deliveryDate      = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
+  const vehicleKm         = payInfo.vehicleKm         ?? String(vehicle.km ?? 0)
+  const observationsD     = payInfo.observations      ?? ""
+  const installmentsD: Array<{number: number; value: string; date: string}> =
+    payInfo.installments ? (Array.isArray(payInfo.installments) ? payInfo.installments : JSON.parse(payInfo.installments)) : []
+  const tradeInVehiclesD: Array<{brand: string; model: string; year: string; plate: string; renavam: string; chassi: string; observations: string}> =
+    payInfo.tradeInVehicles ? (Array.isArray(payInfo.tradeInVehicles) ? payInfo.tradeInVehicles : JSON.parse(payInfo.tradeInVehicles)) : []
 
   let y = 0
 
@@ -412,7 +452,7 @@ async function gerarReservaDominio(contract: any) {
       doc.setFillColor(248, 248, 248); doc.rect(0, H - 16, W, 16, "F")
       doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3); doc.line(0, H - 16, W, H - 16)
       doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(30, 30, 30)
-      doc.text("MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS EIRELI", 14, H - 11.5)
+      doc.text(EMPRESA, 14, H - 11.5)
       doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80)
       doc.text("CNPJ: 22.994.313/0001-45", 14, H - 8)
       doc.text("Av. Álvaro Maia - 176 A - Presidente Vargas - CEP: 69.025-360", 14, H - 4.5)
@@ -439,7 +479,7 @@ async function gerarReservaDominio(contract: any) {
   y += 2
 
   sectionBar("VENDEDOR")
-  paragraph(`MORAUTO LOCADORA DE VEÍCULOS E MAQUINAS LTDA, empresa comercial da praça de Manaus, Estado do Amazonas, estabelecida à Avenida Álvaro Maia, Nº176-A, Bairro: Presidente Vargas, CEP: 69025-360, legalmente inscrita no CNPJ sob o nº 22.994.313/0001-45, neste ato representada por seu sócio administrador ${REP.name}, portador da cédula de identidade RG nº ${REP.rg}, inscrito no CPF sob o nº ${REP.cpf}.`)
+  paragraph(`${EMPRESA}, empresa comercial da praça de Manaus, Estado do Amazonas, estabelecida à Avenida Álvaro Maia, Nº176-A, Bairro: Presidente Vargas, CEP: 69025-360, legalmente inscrita no CNPJ sob o nº 22.994.313/0001-45, neste ato representada por seu sócio administrador ${REP.name}, portador da cédula de identidade RG nº ${REP.rg}, inscrito no CPF sob o nº ${REP.cpf}.`)
   y += 2
 
   sectionBar("COMPRADOR")
@@ -474,13 +514,38 @@ async function gerarReservaDominio(contract: any) {
   sectionBar("CLÁUSULA VII — DO VALOR")
   const valorExtenso = valorPorExtenso(salePrice)
   let pagamentoTexto = `A venda será feita pelo preço justo de ${fmt(salePrice)} (${valorExtenso} reais).`
-  if (entryAmount) pagamentoTexto += ` O VENDEDOR recebe do COMPRADOR como entrada o valor de ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais) via ${contract.paymentMethod}.`
+  if (entryAmount) pagamentoTexto += ` O VENDEDOR recebe do COMPRADOR como entrada o valor de ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais) em ${entryMethodD}.`
+  if (tradeInVehiclesD.length > 0) {
+    tradeInVehiclesD.forEach((tv) => {
+      pagamentoTexto += ` E mais um veículo ${tv.brand} ${tv.model} Ano ${tv.year}, RENAVAM ${tv.renavam ?? "—"}, Placa ${tv.plate ?? "—"}, Chassi ${tv.chassi ?? "—"}.`
+    })
+  }
   if (secondPayment && secondPayDate) pagamentoTexto += ` E ainda o valor de ${fmt(secondPayment)} (${valorPorExtenso(secondPayment)} reais) para o dia ${secondPayDate} em PIX.`
-  if (installmentCount && installmentAmount) pagamentoTexto += ` O restante será pago em ${installmentCount} promissórias de ${fmt(installmentAmount)} (${valorPorExtenso(installmentAmount)} reais) cada.`
+  if (installmentsD.length > 0) {
+    pagamentoTexto += ` O restante será pago em ${installmentsD.length} promissória(s). Após efetivos pagamentos dá-se total e plena quitação.`
+  } else if (installmentCount && installmentAmount) {
+    pagamentoTexto += ` O restante será pago em ${installmentCount} promissórias de ${fmt(installmentAmount)} (${valorPorExtenso(installmentAmount)} reais) cada.`
+  }
   pagamentoTexto += " Após efetivos pagamentos dá-se total e plena quitação."
   paragraph(pagamentoTexto)
 
-  if (installmentCount && installmentAmount && installmentStart) {
+  // Parcelas individuais (novo formato)
+  if (installmentsD.length > 0) {
+    y += 1
+    const rowsD = installmentsD.map((inst) => [`${inst.number}ª Promissória`, fmt(Number(inst.value)), inst.date])
+    autoTable(doc, {
+      startY: y,
+      head: [["Parcela", "Valor", "Vencimento"]],
+      body: rowsD,
+      theme: "striped",
+      headStyles: { fillColor: [18,18,18] as any, textColor: [212,160,23] as any, fontSize: 7.5, fontStyle: "bold" },
+      bodyStyles: { fontSize: 7.5, textColor: [30,30,30] as any, cellPadding: 2 },
+      columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 45 }, 2: { cellWidth: 45 } },
+      styles: { lineColor: [200,200,200] as any },
+      margin: { left: 14, right: 14 },
+    })
+    y = (doc as any).lastAutoTable.finalY + 4
+  } else if (installmentCount && installmentAmount && installmentStart) {
     y += 1
     const rows = []
     const startDate = new Date(installmentStart)
@@ -501,6 +566,12 @@ async function gerarReservaDominio(contract: any) {
     })
     y = (doc as any).lastAutoTable.finalY + 4
   }
+
+  if (tradeInVehiclesD.length > 0) {
+    tradeInVehiclesD.forEach((tv) => { if (tv.observations) paragraph(`OBSERVAÇÃO: ${tv.observations}`) })
+    y += 1
+  }
+  if (observationsD) { paragraph(`OBSERVAÇÃO: ${observationsD}`); y += 1 }
 
   clausula("CLÁUSULA VIII.", "", `Por força do pacto reservati dominii, fica reservado ao VENDEDOR a propriedade do veículo até o último pagamento estipulado na Cláusula VII.`)
   clausula("CLÁUSULA IX.", "", `Em caso de mora no pagamento das parcelas, a dívida será considerada total com o vencimento antecipado das parcelas vincendas.`)
@@ -526,7 +597,7 @@ async function gerarReservaDominio(contract: any) {
   signLine(14, sw, "RAIMUNDO VASCONCELOS MORAIS", "CNPJ: 22.994.313/0001-45")
   doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80)
   doc.text("VENDEDOR MORAUTO L. DE VEÍCULOS", 14 + sw / 2, y + 25, { align: "center" })
-  signLine(14+sw+14, sw, "Ana Paula O. Baima", "CPF 700.922.052-24")
+  signLine(14+sw+14, sw, TESTEMUNHA.name, `CPF ${TESTEMUNHA.cpf}`)
   y += 30
   checkPage(28)
   signLine(14, sw, String(lead.name ?? "COMPRADOR").toUpperCase(), "COMPRADOR")
@@ -571,7 +642,7 @@ async function gerarReservaDominio(contract: any) {
   signLine(14, sw, "RAIMUNDO VASCONCELOS MORAIS", "CNPJ: 22.994.313/0001-45")
   doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80)
   doc.text("VENDEDOR MORAUTO L. DE VEÍCULOS", 14 + sw / 2, y + 25, { align: "center" })
-  signLine(14+sw+14, sw, "Ana Paula O. Baima", "CPF 700.922.052-24")
+  signLine(14+sw+14, sw, TESTEMUNHA.name, `CPF ${TESTEMUNHA.cpf}`)
   y += 30
   checkPage(28)
   signLine(14, sw, String(lead.name ?? "COMPRADOR").toUpperCase(), "COMPRADOR")

@@ -316,6 +316,88 @@ export async function realizeSale(vehicleId: string, formData: FormData) {
   }
 }
 
+export async function updateSaleContract(contractId: string, formData: FormData) {
+  try {
+    const contract = await db.saleContract.findUnique({
+      where: { id: contractId },
+      include: { vehicle: true, lead: true },
+    })
+    if (!contract) return { error: "Contrato não encontrado." }
+
+    const salePrice     = Number(formData.get("salePrice") ?? contract.salePrice)
+    const paymentMethod = (formData.get("paymentMethod") as string) || contract.paymentMethod
+
+    // Rebuild paymentDetails JSON
+    const payDetails: Record<string, any> = {}
+    const simpleFields = ["rg","address","entryAmount","entryMethod","deliveryDate","vehicleKm","observations"]
+    simpleFields.forEach((f) => {
+      const v = formData.get(f) as string
+      if (v) payDetails[f] = v
+    })
+
+    // Trade-in vehicles (sent as JSON string)
+    const tradeInRaw = formData.get("tradeInVehicles") as string
+    if (tradeInRaw) {
+      try { payDetails.tradeInVehicles = JSON.parse(tradeInRaw) } catch {}
+    }
+
+    // Individual installments (sent as JSON string)
+    const installmentsRaw = formData.get("installments") as string
+    if (installmentsRaw) {
+      try { payDetails.installments = JSON.parse(installmentsRaw) } catch {}
+    }
+
+    const paymentDetails = JSON.stringify(payDetails)
+
+    // Regenerate terms
+    const lead = contract.lead as any
+    const vehicle = contract.vehicle as any
+    const terms = buildSaleContractTerms({
+      lead: { ...lead, vehicle },
+      number: contract.number,
+      salePrice,
+      paymentMethod,
+      paymentDetails,
+    })
+
+    await db.saleContract.update({
+      where: { id: contractId },
+      data: { salePrice, paymentMethod, paymentDetails, terms },
+    })
+
+    // Update lead address if provided
+    const address = formData.get("address") as string
+    if (address) {
+      await db.saleLead.update({ where: { id: contract.leadId }, data: { address } })
+    }
+
+    revalidatePath(`/admin/vendas/contratos/${contractId}`)
+    revalidatePath("/admin/vendas/contratos")
+    return { success: true }
+  } catch (e) {
+    console.error(e)
+    return { error: "Erro ao atualizar contrato." }
+  }
+}
+
+export async function deleteSaleContract(contractId: string) {
+  try {
+    const contract = await db.saleContract.findUnique({ where: { id: contractId } })
+    if (!contract) return { error: "Contrato não encontrado." }
+
+    await db.saleContract.delete({ where: { id: contractId } })
+    await db.saleVehicle.update({ where: { id: contract.vehicleId }, data: { status: "AVAILABLE" } })
+    await db.saleLead.update({ where: { id: contract.leadId }, data: { status: "NEW" } })
+
+    revalidatePath("/admin/vendas/contratos")
+    revalidatePath("/admin/vendas")
+    return { success: true }
+  } catch (e) {
+    console.error(e)
+    return { error: "Erro ao excluir contrato." }
+  }
+}
+
 export async function finalizeSale(contractId: string) {
   try {
     const contract = await db.saleContract.findUnique({ where: { id: contractId } })

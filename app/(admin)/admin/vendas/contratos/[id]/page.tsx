@@ -1,4 +1,4 @@
-import { getSaleContractById, finalizeSale } from "@/app/actions/sale.actions"
+import { getSaleContractById, finalizeSale, deleteSaleContract } from "@/app/actions/sale.actions"
 import { formatCurrency } from "@/lib/utils"
 import SaleContractPdfButton from "@/components/admin/SaleContractPdfButton"
 import { auth } from "@/auth"
@@ -6,7 +6,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import {
   ChevronLeft, Car, User, DollarSign, FileText,
-  CheckCircle2, Clock, Calendar
+  CheckCircle2, Clock, Calendar, Pencil, Trash2
 } from "lucide-react"
 
 export const dynamic = "force-dynamic"
@@ -55,15 +55,31 @@ export default async function SaleContractDetailPage({
                   "use server"
                   await finalizeSale(id)
                 }}>
-                  <button
-                    type="submit"
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-colors"
-                  >
+                  <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm transition-colors">
                     <CheckCircle2 size={14} /> Finalizar Venda
                   </button>
                 </form>
               </>
             )}
+            <Link
+              href={`/admin/vendas/contratos/${id}/editar`}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white font-bold rounded-xl text-sm transition-colors"
+            >
+              <Pencil size={14} /> Editar
+            </Link>
+            <form action={async () => {
+              "use server"
+              const result = await deleteSaleContract(id)
+              if (result.success) redirect("/admin/vendas/contratos")
+            }}>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded-xl text-sm transition-colors"
+                onClick={(e) => { if (!confirm("Excluir este contrato? O veículo voltará para disponível.")) e.preventDefault() }}
+              >
+                <Trash2 size={14} /> Excluir
+              </button>
+            </form>
             <SaleContractPdfButton contract={contract} />
           </div>
         </div>
