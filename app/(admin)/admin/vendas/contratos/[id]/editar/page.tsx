@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getSaleContractById, updateSaleContract } from "@/app/actions/sale.actions"
-import { ChevronLeft, Plus, Trash2, Car, Save, Loader2 } from "lucide-react"
+import { ChevronLeft, Plus, Trash2, Car, Save, Loader2, ScrollText } from "lucide-react"
 import Link from "next/link"
 
 interface TradeIn {
@@ -33,6 +33,16 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
   const [tradeIns, setTradeIns]         = useState<TradeIn[]>([])
   const [installments, setInstallments] = useState<Installment[]>([])
 
+  // Dação em Pagamento — campos do interveniente anuente e parâmetros
+  const [intName, setIntName]           = useState("")
+  const [intCpf, setIntCpf]             = useState("")
+  const [intRg, setIntRg]               = useState("")
+  const [intAddress, setIntAddress]     = useState("")
+  const [dacaoAmount, setDacaoAmount]   = useState("")
+  const [prazoQuitacao, setPrazoQuitacao] = useState("30 (trinta) dias")
+  const [multaPercent, setMultaPercent] = useState("20% (vinte por cento)")
+  const [garantiaPrazo, setGarantiaPrazo] = useState("90 (noventa) dias ou 5.000 km")
+
   useEffect(() => {
     params.then(({ id }) => {
       setContractId(id)
@@ -54,6 +64,16 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
         if (savedTrades) setTradeIns(Array.isArray(savedTrades) ? savedTrades : JSON.parse(savedTrades))
         const savedInst = pay.installments
         if (savedInst) setInstallments(Array.isArray(savedInst) ? savedInst : JSON.parse(savedInst))
+        // Dação
+        const int = pay.interveniente ?? {}
+        setIntName(int.name ?? "")
+        setIntCpf(int.cpf ?? "")
+        setIntRg(int.rg ?? "")
+        setIntAddress(int.address ?? "")
+        setDacaoAmount(pay.dacaoAmount ?? "")
+        if (pay.prazoQuitacao) setPrazoQuitacao(pay.prazoQuitacao)
+        if (pay.multaPercent)  setMultaPercent(pay.multaPercent)
+        if (pay.garantiaPrazo) setGarantiaPrazo(pay.garantiaPrazo)
         setLoading(false)
       })
     })
@@ -93,6 +113,14 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
     fd.append("observations", observations)
     if (tradeIns.length > 0) fd.append("tradeInVehicles", JSON.stringify(tradeIns))
     if (installments.length > 0) fd.append("installments", JSON.stringify(installments))
+    // Dação
+    if (intName || intCpf || intAddress) {
+      fd.append("interveniente", JSON.stringify({ name: intName, cpf: intCpf, rg: intRg, address: intAddress }))
+    }
+    if (dacaoAmount)    fd.append("dacaoAmount", dacaoAmount)
+    if (prazoQuitacao)  fd.append("prazoQuitacao", prazoQuitacao)
+    if (multaPercent)   fd.append("multaPercent", multaPercent)
+    if (garantiaPrazo)  fd.append("garantiaPrazo", garantiaPrazo)
     const result = await updateSaleContract(contractId, fd)
     setSaving(false)
     if (result?.error) { setError(result.error); return }
@@ -186,6 +214,42 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
               <div><label className={lbl}>Observações do veículo</label><input className={inp} value={tv.observations} onChange={e => updateTradeIn(i, "observations", e.target.value)} placeholder="Ex: Quitado sem reserva de domínio" /></div>
             </div>
           ))}
+        </section>
+
+        {/* Dação em Pagamento (opcional) */}
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+          <div>
+            <h2 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+              <ScrollText size={14} className="text-emerald-400" /> Dação em Pagamento <span className="text-zinc-500 text-xs font-normal normal-case">(opcional — preencher apenas se for gerar contrato de Dação)</span>
+            </h2>
+            <p className="text-zinc-500 text-xs mt-1">Interveniente Anuente é o atual titular do veículo dado em pagamento (ex: veículo com alienação fiduciária).</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label className={lbl}>Nome do Interveniente Anuente</label><input className={inp} value={intName} onChange={e => setIntName(e.target.value)} placeholder="Ex: João Henrique M da Fonseca" /></div>
+            <div><label className={lbl}>CPF</label><input className={inp} value={intCpf} onChange={e => setIntCpf(e.target.value)} placeholder="Ex: 955.717.522-20" /></div>
+            <div><label className={lbl}>RG (opcional)</label><input className={inp} value={intRg} onChange={e => setIntRg(e.target.value)} placeholder="Ex: 1234567 SSP-AM" /></div>
+            <div><label className={lbl}>Endereço</label><input className={inp} value={intAddress} onChange={e => setIntAddress(e.target.value)} placeholder="Rua, número, bairro, CEP, cidade" /></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
+            <div>
+              <label className={lbl}>Valor da Dação (R$) <span className="text-zinc-500">— valor do veículo entregue</span></label>
+              <input type="number" className={inp} value={dacaoAmount} onChange={e => setDacaoAmount(e.target.value)} step="0.01" placeholder="Ex: 150000.00" />
+            </div>
+            <div>
+              <label className={lbl}>Prazo para quitação do financiamento</label>
+              <input className={inp} value={prazoQuitacao} onChange={e => setPrazoQuitacao(e.target.value)} placeholder="Ex: 30 (trinta) dias" />
+            </div>
+            <div>
+              <label className={lbl}>Multa penal (%)</label>
+              <input className={inp} value={multaPercent} onChange={e => setMultaPercent(e.target.value)} placeholder="Ex: 20% (vinte por cento)" />
+            </div>
+            <div>
+              <label className={lbl}>Prazo da garantia</label>
+              <input className={inp} value={garantiaPrazo} onChange={e => setGarantiaPrazo(e.target.value)} placeholder="Ex: 90 (noventa) dias ou 5.000 km" />
+            </div>
+          </div>
         </section>
 
         {/* Parcelas */}

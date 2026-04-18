@@ -329,7 +329,7 @@ export async function updateSaleContract(contractId: string, formData: FormData)
 
     // Rebuild paymentDetails JSON
     const payDetails: Record<string, any> = {}
-    const simpleFields = ["rg","address","entryAmount","entryMethod","deliveryDate","vehicleKm","observations"]
+    const simpleFields = ["rg","address","entryAmount","entryMethod","deliveryDate","vehicleKm","observations","dacaoAmount","prazoQuitacao","multaPercent","garantiaPrazo"]
     simpleFields.forEach((f) => {
       const v = formData.get(f) as string
       if (v) payDetails[f] = v
@@ -345,6 +345,12 @@ export async function updateSaleContract(contractId: string, formData: FormData)
     const installmentsRaw = formData.get("installments") as string
     if (installmentsRaw) {
       try { payDetails.installments = JSON.parse(installmentsRaw) } catch {}
+    }
+
+    // Interveniente Anuente (dação em pagamento)
+    const intervenienteRaw = formData.get("interveniente") as string
+    if (intervenienteRaw) {
+      try { payDetails.interveniente = JSON.parse(intervenienteRaw) } catch {}
     }
 
     const paymentDetails = JSON.stringify(payDetails)

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { FileDown, Loader2, ChevronDown, Receipt, FileText } from "lucide-react"
+import { FileDown, Loader2, ChevronDown, Receipt, FileText, ScrollText } from "lucide-react"
 
 type Props = { contract: any }
 
@@ -655,6 +655,279 @@ async function gerarReservaDominio(contract: any) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// MODELO 3 — DAÇÃO EM PAGAMENTO (sinal + veículo em dação + promissórias)
+// ═══════════════════════════════════════════════════════════════════
+async function gerarDacao(contract: any) {
+  const { default: jsPDF } = await import("jspdf")
+  const logoBase64 = await loadLogo()
+
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" }) as any
+  const W = doc.internal.pageSize.getWidth()
+  const H = doc.internal.pageSize.getHeight()
+
+  const { vehicle, lead } = contract
+  const salePrice = Number(contract.salePrice)
+  let payInfo: Record<string, any> = {}
+  try { payInfo = JSON.parse(contract.paymentDetails ?? "{}") } catch {}
+
+  const entryAmount   = payInfo.entryAmount ? Number(payInfo.entryAmount) : null
+  const entryMethod   = (payInfo.entryMethod ?? "PIX")
+  const rg            = payInfo.rg ?? "___________"
+  const interveniente = payInfo.interveniente ?? {}
+  const intName       = interveniente.name ?? "_______________"
+  const intCpf        = interveniente.cpf ?? "_______________"
+  const intRg         = interveniente.rg ?? ""
+  const intAddress    = interveniente.address ?? "_______________"
+  const observations  = payInfo.observations ?? ""
+  const garantiaPrazo = payInfo.garantiaPrazo ?? "90 (noventa) dias ou 5.000 km"
+  const multaPercent  = payInfo.multaPercent ?? "20% (vinte por cento)"
+  const prazoQuitacao = payInfo.prazoQuitacao ?? "30 (trinta) dias"
+  const installments: Array<{number: number; value: string; date: string}> =
+    payInfo.installments ? (Array.isArray(payInfo.installments) ? payInfo.installments : JSON.parse(payInfo.installments)) : []
+  const tradeInVehicles: Array<{brand: string; model: string; year: string; plate: string; renavam: string; chassi: string; observations: string}> =
+    payInfo.tradeInVehicles ? (Array.isArray(payInfo.tradeInVehicles) ? payInfo.tradeInVehicles : JSON.parse(payInfo.tradeInVehicles)) : []
+
+  // Valor da dação (veículo entregue) — soma simples dos trade-ins ou valor informado
+  const dacaoAmount = payInfo.dacaoAmount ? Number(payInfo.dacaoAmount) : null
+  // Total em promissórias
+  const promissoriasTotal = installments.reduce((sum, inst) => sum + (Number(inst.value) || 0), 0)
+
+  let y = 0
+
+  function checkPage(need = 12) {
+    if (y + need > H - 22) { doc.addPage(); pageHeader() }
+  }
+
+  function pageHeader() {
+    if (logoBase64) {
+      doc.addImage(logoBase64, "PNG", (W - 55) / 2, 6, 55, 22)
+    } else {
+      doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(212, 160, 23)
+      doc.text("MORAUTO", W / 2, 20, { align: "center" })
+    }
+    y = 34
+  }
+
+  function footer() {
+    const pages = doc.internal.getNumberOfPages()
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i)
+      const fh = 20
+      doc.setFillColor(30, 30, 30)
+      doc.rect(0, H - fh, W, fh, "F")
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.setTextColor(255, 255, 255)
+      doc.text(EMPRESA, 14, H - fh + 5)
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(180, 180, 180)
+      doc.text("CNPJ: 22.994.313/0001-45", 14, H - fh + 9)
+      doc.text("Av. Álvaro Maia - 176 A - Presidente Vargas - CEP: 69.025-360", 14, H - fh + 13)
+      doc.text("Contato: 92. 3622-2883 / 99292-1946  ·  E-mail: morautolocadora@hotmail.com", 14, H - fh + 17)
+      const bx = W - 50, bw = 36, by = H - fh + 2, bh = 16
+      doc.setFillColor(255, 255, 255); doc.setDrawColor(150, 150, 150)
+      doc.rect(bx, by, bw, bh, "FD")
+      doc.setFont("helvetica", "bold"); doc.setFontSize(5.5); doc.setTextColor(30, 30, 30)
+      doc.text("FUNCIONAMENTO", bx + bw / 2, by + 4, { align: "center" })
+      doc.setFont("helvetica", "normal"); doc.setFontSize(5); doc.setTextColor(80, 80, 80)
+      doc.text("SEG a SEX: 8h às 17h", bx + bw / 2, by + 7.5, { align: "center" })
+      doc.text("SÁB: 8h às 13h", bx + bw / 2, by + 10.5, { align: "center" })
+      doc.text("DOM e Feriados: Fechado", bx + bw / 2, by + 13.5, { align: "center" })
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(150, 150, 150)
+      doc.text(`Pág. ${i}/${pages}`, W - 14, H - fh - 2)
+    }
+  }
+
+  function title(txt: string) {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(0, 0, 0)
+    const lines: string[] = doc.splitTextToSize(txt, W - 40)
+    lines.forEach((line: string) => {
+      doc.text(line, W / 2, y, { align: "center" }); y += 6
+    })
+    y += 2
+  }
+
+  function sectionTitle(txt: string) {
+    checkPage(10)
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0)
+    doc.text(txt, 14, y)
+    y += 6
+  }
+
+  function para(txt: string, bold = false) {
+    const maxW = W - 28
+    doc.setFont("helvetica", bold ? "bold" : "normal")
+    doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+    const lines: string[] = doc.splitTextToSize(txt, maxW)
+    lines.forEach((line: string) => { checkPage(5); doc.text(line, 14, y); y += 5 })
+    y += 1
+  }
+
+  function item(prefix: string, txt: string, indent = 6) {
+    checkPage(8)
+    const maxW = W - 28 - indent
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+    const lines: string[] = doc.splitTextToSize(`${prefix} ${txt}`, maxW)
+    lines.forEach((line: string) => { checkPage(5); doc.text(line, 14 + indent, y); y += 5 })
+    y += 0.5
+  }
+
+  function clausula(num: string, titulo: string, corpo: string) {
+    checkPage(14)
+    const headerText = `${num} – ${titulo}`
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0)
+    doc.text(headerText, 14, y)
+    y += 5.5
+    para(corpo)
+  }
+
+  // ── PÁGINA 1 ─────────────────────────────────────────────────────
+  pageHeader()
+  y += 2
+  title("CONTRATO PARTICULAR DE COMPRA E VENDA DE VEÍCULO COM DAÇÃO EM PAGAMENTO E OBRIGAÇÃO DE FAZER")
+
+  sectionTitle("IDENTIFICAÇÃO DAS PARTES")
+
+  para(`VENDEDORA: ${EMPRESA}, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 22.994.313/0001-45, com sede na Avenida Álvaro Maia, nº 176-A, Bairro Presidente Vargas, CEP 69.025-360, Manaus/AM, neste ato representada por seu sócio administrador, ${REP.name}, portador do CPF nº ${REP.cpf} e RG nº ${REP.rg}.`, true)
+
+  para(`COMPRADOR: ${String(lead.name ?? "").toUpperCase()}, portador do CPF nº ${lead.document ?? "_______________"} e do RG nº ${rg}, residente e domiciliado na ${lead.address ?? "_______________"}.`, true)
+
+  para(`INTERVENIENTE ANUENTE: ${String(intName).toUpperCase()}, portador do CPF nº ${intCpf}${intRg ? " e RG nº " + intRg : ""}, residente e domiciliado na ${intAddress}.`, true)
+
+  para(`As partes acima qualificadas celebram o presente Contrato, que se regerá pelas cláusulas e condições a seguir.`)
+  y += 2
+
+  // CLÁUSULA 1
+  clausula("CLÁUSULA PRIMEIRA", "DO OBJETO DA VENDA",
+    `1.1. O presente contrato tem por objeto a venda do veículo de propriedade da VENDEDORA, a saber:`)
+
+  item("• Veículo:",    `${vehicle.brand} ${vehicle.model}${vehicle.version ? " " + vehicle.version : ""}`)
+  item("• Ano/Modelo:", `${vehicle.year}/${vehicle.year}`)
+  item("• Placa:",      vehicle.plate ?? "N/I")
+  item("• RENAVAM:",    vehicle.renavam ?? "N/I")
+  item("• Chassi:",     vehicle.chassi ?? "N/I")
+  item("• Cor:",        (vehicle.color ?? "—"))
+  item("• Combustível:", vehicle.fuelType ?? "N/I")
+  y += 2
+
+  // CLÁUSULA 2 — preço e pagamento
+  clausula("CLÁUSULA SEGUNDA", "DO PREÇO E DA FORMA DE PAGAMENTO",
+    `2.1. O valor total da presente transação é de ${fmt(salePrice)} (${valorPorExtenso(salePrice)} reais), a ser pago pelo COMPRADOR da seguinte forma:`)
+
+  // a) sinal
+  if (entryAmount) {
+    para(`a) ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais), pagos a título de sinal neste ato, por meio de ${entryMethod} para a conta de titularidade da VENDEDORA;`)
+  }
+
+  // b) dação (veículos entregues)
+  if (tradeInVehicles.length > 0) {
+    const valorDacao = dacaoAmount ?? (salePrice - (entryAmount ?? 0) - promissoriasTotal)
+    para(`b) ${fmt(valorDacao)} (${valorPorExtenso(valorDacao)} reais), pagos mediante a entrega, a título de dação em pagamento, do(s) veículo(s) descrito(s) abaixo:`, false)
+    tradeInVehicles.forEach((tv) => {
+      item("• Veículo:",    `${tv.brand} ${tv.model}`)
+      item("• Ano/Modelo:", `${tv.year}${tv.year && !tv.year.includes("/") ? "/" + tv.year : ""}`)
+      item("• Placa:",      tv.plate ?? "—")
+      item("• RENAVAM:",    tv.renavam ?? "—")
+      item("• Chassi:",     tv.chassi ?? "—")
+      if (tv.observations) item("• Obs.:", tv.observations)
+      y += 1
+    })
+  }
+
+  // c) promissórias
+  if (installments.length > 0) {
+    para(`c) ${fmt(promissoriasTotal)} (${valorPorExtenso(promissoriasTotal)} reais), correspondentes ao saldo remanescente, a serem pagos por meio de ${installments.length} (${valorPorExtenso(installments.length)}) nota(s) promissória(s), com os seguintes vencimentos:`)
+    installments.forEach((inst) => {
+      item(`* ${inst.number}ª Nota Promissória:`, `${fmt(Number(inst.value))} — vencimento ${inst.date}.`)
+    })
+    y += 2
+  }
+
+  // CLÁUSULA 3 — obrigações sobre veículo dado em pagamento
+  if (tradeInVehicles.length > 0) {
+    const primeiroTrade = tradeInVehicles[0]
+    clausula("CLÁUSULA TERCEIRA", "DAS OBRIGAÇÕES SOBRE O VEÍCULO DADO EM PAGAMENTO",
+      `3.1. O veículo ${primeiroTrade.brand} ${primeiroTrade.model}, dado em pagamento, encontra-se registrado em nome do INTERVENIENTE ANUENTE e possui gravame de Alienação Fiduciária, conforme consta em seu CRLV.`)
+    para(`3.2. O COMPRADOR e o INTERVENIENTE ANUENTE declaram-se, para todos os fins de direito, devedores solidários e assumem a obrigação expressa de quitar integralmente o referido financiamento e todos os demais débitos (IPVA, multas, etc.) que recaiam sobre o veículo.`)
+    para(`3.3. A quitação do financiamento e a entrega à VENDEDORA do respectivo comprovante, juntamente com o Certificado de Registro de Veículo (CRV ou ATPV-e) devidamente preenchido, assinado e com firma reconhecida, deverão ocorrer no prazo máximo e improrrogável de ${prazoQuitacao}, a contar da data de assinatura deste instrumento.`)
+    y += 1
+  }
+
+  // CLÁUSULA 4 — cláusula penal
+  clausula("CLÁUSULA QUARTA", "DA CLÁUSULA PENAL",
+    `4.1. O não cumprimento da obrigação estipulada na Cláusula Terceira no prazo acordado implicará na incidência automática de multa penal de ${multaPercent} sobre o valor total deste contrato (${fmt(salePrice)}), a ser paga pelo COMPRADOR e pelo INTERVENIENTE ANUENTE de forma solidária, sem prejuízo da cobrança de juros e correção monetária.`)
+  para(`4.2. Adicionalmente, o descumprimento autoriza a VENDEDORA a, alternativamente e a seu exclusivo critério:`)
+  item("a)", `Considerar o presente contrato rescindido de pleno direito, devendo o COMPRADOR restituir imediatamente o veículo descrito na Cláusula 1.1, sob pena de busca e apreensão, sem prejuízo da cobrança da multa e de indenização por perdas e danos.`)
+  item("b)", `Exigir judicialmente o cumprimento da obrigação de fazer (quitação e entrega dos documentos), com a execução da multa estipulada e a responsabilização por eventuais danos decorrentes da mora.`)
+  y += 1
+
+  // CLÁUSULA 5 — garantia
+  clausula("CLÁUSULA QUINTA", "DA GARANTIA E RESPONSABILIDADES",
+    `5.1. A VENDEDORA concede garantia sobre o motor e caixa de câmbio do veículo objeto da venda pelo prazo de ${garantiaPrazo}, o que ocorrer primeiro, contados a partir da assinatura deste instrumento.`)
+  para(`5.2. O COMPRADOR declara ter inspecionado o veículo, que é usado, e está ciente de seu estado de conservação e desgaste natural.`)
+  para(`5.3. A responsabilidade por multas, impostos, pontuação na CNH e acidentes de trânsito é da VENDEDORA para fatos ocorridos até a data de assinatura deste contrato, e do COMPRADOR para fatos ocorridos após esta data.`)
+
+  // CLÁUSULA 6 — foro
+  clausula("CLÁUSULA SEXTA", "DO FORO",
+    `6.1. As partes elegem o foro da Comarca de Manaus/AM para dirimir quaisquer controvérsias oriundas do presente contrato.`)
+
+  // Observações opcionais
+  if (observations) {
+    sectionTitle("OBSERVAÇÕES")
+    para(observations)
+  }
+
+  // Cláusula de assinatura
+  para(`E, por estarem justos e contratados, assinam o presente instrumento em 3 (três) vias de igual teor e forma, na presença de 2 (duas) testemunhas.`)
+  y += 2
+  para(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`, true)
+  y += 6
+
+  // ── ASSINATURAS ──────────────────────────────────────────────────
+  checkPage(90)
+  const sigW = W - 28
+
+  // VENDEDORA
+  doc.setDrawColor(80, 80, 80); doc.setLineWidth(0.3)
+  doc.line(14, y, 14 + sigW, y); y += 4
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+  doc.text(EMPRESA, 14 + sigW / 2, y, { align: "center" }); y += 4
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(80, 80, 80)
+  doc.text("(VENDEDORA)", 14 + sigW / 2, y, { align: "center" }); y += 10
+
+  // COMPRADOR
+  doc.setDrawColor(80, 80, 80)
+  doc.line(14, y, 14 + sigW, y); y += 4
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+  doc.text(String(lead.name ?? "COMPRADOR").toUpperCase(), 14 + sigW / 2, y, { align: "center" }); y += 4
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(80, 80, 80)
+  doc.text("(COMPRADOR)", 14 + sigW / 2, y, { align: "center" }); y += 10
+
+  // INTERVENIENTE ANUENTE
+  doc.setDrawColor(80, 80, 80)
+  doc.line(14, y, 14 + sigW, y); y += 4
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+  doc.text(String(intName).toUpperCase(), 14 + sigW / 2, y, { align: "center" }); y += 4
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(80, 80, 80)
+  doc.text("(INTERVENIENTE ANUENTE)", 14 + sigW / 2, y, { align: "center" }); y += 12
+
+  // TESTEMUNHAS
+  checkPage(30)
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0)
+  doc.text("Testemunhas:", 14, y); y += 8
+  const twW = (W - 42) / 2
+  doc.setDrawColor(80, 80, 80)
+  doc.line(14, y, 14 + twW, y)
+  doc.line(14 + twW + 14, y, 14 + twW * 2 + 14, y)
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(20, 20, 20)
+  doc.text(TESTEMUNHA.name, 14 + twW / 2, y + 4.5, { align: "center" })
+  doc.text("2. ___________________________", 14 + twW + 14 + twW / 2, y + 4.5, { align: "center" })
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(80, 80, 80)
+  doc.text(`CPF ${TESTEMUNHA.cpf}`, 14 + twW / 2, y + 8, { align: "center" })
+  doc.text("Nome / CPF", 14 + twW + 14 + twW / 2, y + 8, { align: "center" })
+
+  footer()
+  doc.save(`contrato-dacao-${contract.number}.pdf`)
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // COMPONENTE — botão com dropdown de seleção
 // ═══════════════════════════════════════════════════════════════════
 export default function SaleContractPdfButton({ contract }: Props) {
@@ -671,12 +944,13 @@ export default function SaleContractPdfButton({ contract }: Props) {
     return () => document.removeEventListener("mousedown", handler)
   }, [])
 
-  async function handle(type: "avista" | "dominio") {
+  async function handle(type: "avista" | "dominio" | "dacao") {
     setOpen(false)
     setLoading(true)
     try {
-      if (type === "avista")  await gerarAVista(contract)
-      else                    await gerarReservaDominio(contract)
+      if (type === "avista")      await gerarAVista(contract)
+      else if (type === "dominio") await gerarReservaDominio(contract)
+      else                         await gerarDacao(contract)
     } finally {
       setLoading(false)
     }
@@ -717,6 +991,16 @@ export default function SaleContractPdfButton({ contract }: Props) {
             <div>
               <p className="text-white text-sm font-semibold">Com Reserva de Domínio</p>
               <p className="text-zinc-500 text-xs">20 cláusulas, tabela de parcelas</p>
+            </div>
+          </button>
+          <button
+            onClick={() => handle("dacao")}
+            className="w-full flex items-start gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors text-left border-t border-zinc-800"
+          >
+            <ScrollText size={16} className="text-emerald-400 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-white text-sm font-semibold">Dação em Pagamento</p>
+              <p className="text-zinc-500 text-xs">Com interveniente anuente + cláusula penal</p>
             </div>
           </button>
         </div>
