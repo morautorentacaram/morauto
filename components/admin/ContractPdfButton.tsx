@@ -16,7 +16,8 @@ export default function ContractPdfButton({ contract }: Props) {
   // Pre-fill modal values when opening
   function openModal() {
     const TZ = "America/Manaus"
-    const defaultCaucao = Number(contract.reservation?.vehicle?.category?.depositValue ?? 0)
+    const veh = contract.reservation?.vehicle
+    const defaultCaucao = Number(veh?.depositValue ?? veh?.category?.depositValue ?? 0)
     setCaucaoValue(defaultCaucao > 0 ? String(defaultCaucao) : "")
     setUseCaucao(defaultCaucao > 0)
 
@@ -99,7 +100,7 @@ export default function ContractPdfButton({ contract }: Props) {
       const days = Math.max(1, Math.ceil(
         (returnDateTime.getTime() - new Date(reservation.startDate).getTime()) / 86400000
       ))
-      const dailyRate  = Number(vehicle.category.dailyRate)
+      const dailyRate  = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
       const totalValue = Number(reservation.totalValue)
       const kmExcess   = 0.58
 

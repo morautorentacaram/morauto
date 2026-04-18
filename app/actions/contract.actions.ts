@@ -232,8 +232,8 @@ function buildContractTerms({
   number: string
 }) {
   const { customer, vehicle } = reservation
-  const dailyRate    = Number(vehicle.category.dailyRate)
-  const depositValue = Number(vehicle.category.depositValue ?? 0)
+  const dailyRate    = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
+  const depositValue = Number(vehicle.depositValue ?? vehicle.category.depositValue ?? 0)
   const totalValue   = Number(reservation.totalValue)
   const kmLimit      = 1500
 

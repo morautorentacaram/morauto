@@ -32,7 +32,8 @@ export async function createReservation(formData: FormData) {
     if (!vehicle) return { error: "Veículo não encontrado." }
 
     const days = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
-    const totalValue = Number(vehicle.category.dailyRate) * days
+    const effDaily = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
+    const totalValue = effDaily * days
 
     const reservation = await db.reservation.create({
       data: { customerId, vehicleId, startDate, endDate, totalValue, status: "PENDING", notes: notes || null },
@@ -89,7 +90,8 @@ export async function updateReservation(id: string, formData: FormData) {
     if (conflict) return { error: "Veículo já possui reserva neste período." }
 
     const days = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
-    const totalValue = Number(reservation.vehicle.category.dailyRate) * days
+    const effDaily = Number(reservation.vehicle.dailyRate ?? reservation.vehicle.category.dailyRate)
+    const totalValue = effDaily * days
 
     await db.reservation.update({
       where: { id },

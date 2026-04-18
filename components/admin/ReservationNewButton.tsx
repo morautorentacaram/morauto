@@ -5,7 +5,7 @@ import { Plus } from "lucide-react"
 import ReservationNewModal from "./ReservationNewModal"
 
 type Customer = { id: string; document: string; user: { name: string | null } }
-type Vehicle  = { id: string; brand: string; model: string; plate: string; category: { name: string; dailyRate: any } }
+type Vehicle  = { id: string; brand: string; model: string; plate: string; dailyRate?: any; category: { name: string; dailyRate: any } }
 
 export default function ReservationNewButton({
   customers,

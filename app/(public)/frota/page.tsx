@@ -192,7 +192,7 @@ export default async function FrotaPage({
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <div>
-                            <span className="text-lg font-black text-[#d4a017]">{formatCurrency(Number(v.category.dailyRate))}</span>
+                            <span className="text-lg font-black text-[#d4a017]">{formatCurrency(Number(v.dailyRate ?? v.category.dailyRate))}</span>
                             <span className="text-zinc-500 text-[10px] ml-0.5">/dia</span>
                           </div>
                           <Link
@@ -230,7 +230,7 @@ export default async function FrotaPage({
                         </div>
                         <div className="mt-auto flex items-center justify-between">
                           <div>
-                            <span className="text-2xl font-black text-[#d4a017]">{formatCurrency(Number(v.category.dailyRate))}</span>
+                            <span className="text-2xl font-black text-[#d4a017]">{formatCurrency(Number(v.dailyRate ?? v.category.dailyRate))}</span>
                             <span className="text-zinc-500 text-xs ml-1">/dia</span>
                           </div>
                           <Link

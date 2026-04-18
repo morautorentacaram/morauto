@@ -133,7 +133,7 @@ export async function processCheckout(formData: FormData) {
         endDate: end,
         status: "PENDING",
         totalValue,
-        depositValue: Number(vehicle.category.depositValue),
+        depositValue: Number(vehicle.depositValue ?? vehicle.category.depositValue),
         customerId,
         vehicleId,
       },

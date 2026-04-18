@@ -49,8 +49,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   const days          = Math.max(1, Math.ceil(
     (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / 86400000
   ))
-  const dailyRate    = Number(vehicle.category.dailyRate)
-  const depositValue = Number(vehicle.category.depositValue ?? 0)
+  const dailyRate    = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
+  const depositValue = Number(vehicle.depositValue ?? vehicle.category.depositValue ?? 0)
   const totalValue   = Number(reservation.totalValue)
   const tax10pct     = totalValue * 0.1
 

@@ -40,6 +40,16 @@ export async function getVehicleById(id: string) {
   }
 }
 
+function parseDecimal(formData: FormData, key: string): number | null {
+  const raw = formData.get(key)
+  if (raw === null || raw === undefined) return null
+  const str = String(raw).trim()
+  if (str === "") return null
+  const num = Number(str.replace(",", "."))
+  if (!isFinite(num) || num < 0) return null
+  return num
+}
+
 export async function createVehicle(formData: FormData) {
   try {
     const photosRaw = formData.get("photos") as string
@@ -58,6 +68,10 @@ export async function createVehicle(formData: FormData) {
       fuelType: formData.get("fuelType") as string,
       transmission: formData.get("transmission") as string,
       categoryId: formData.get("categoryId") as string,
+      dailyRate: parseDecimal(formData, "dailyRate"),
+      weeklyRate: parseDecimal(formData, "weeklyRate"),
+      monthlyRate: parseDecimal(formData, "monthlyRate"),
+      depositValue: parseDecimal(formData, "depositValue"),
       photos,
     };
 
@@ -104,6 +118,10 @@ export async function updateVehicle(id: string, formData: FormData) {
       transmission: formData.get("transmission") as string,
       categoryId: formData.get("categoryId") as string,
       status: formData.get("status") as string,
+      dailyRate: parseDecimal(formData, "dailyRate"),
+      weeklyRate: parseDecimal(formData, "weeklyRate"),
+      monthlyRate: parseDecimal(formData, "monthlyRate"),
+      depositValue: parseDecimal(formData, "depositValue"),
       photos,
     };
 

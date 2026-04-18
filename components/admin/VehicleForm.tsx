@@ -22,12 +22,24 @@ type Vehicle = {
   categoryId: string
   status: string
   photos: string[]
+  dailyRate?: any
+  weeklyRate?: any
+  monthlyRate?: any
+  depositValue?: any
 }
 
 type Props = {
   categories: any[]
   vehicle?: Vehicle
   onSuccess?: () => void
+}
+
+function decToStr(v: any): string {
+  if (v === null || v === undefined) return ""
+  if (typeof v === "number") return String(v)
+  if (typeof v === "string") return v
+  if (typeof v?.toString === "function") return v.toString()
+  return ""
 }
 
 const inputCls = "w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#d4a017]"
@@ -37,10 +49,20 @@ export default function VehicleForm({ categories, vehicle, onSuccess }: Props) {
   const [error, setError] = useState("")
   const [photos, setPhotos] = useState<string[]>(vehicle?.photos ?? [])
   const [uploading, setUploading] = useState(false)
+  const [categoryId, setCategoryId] = useState<string>(vehicle?.categoryId ?? "")
   const fileRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const router = useRouter()
   const isEditing = !!vehicle
+
+  const selectedCategory = categories.find((c) => c.id === categoryId)
+  const catDaily = selectedCategory ? Number(selectedCategory.dailyRate) : null
+  const catWeekly = selectedCategory?.weeklyRate != null ? Number(selectedCategory.weeklyRate) : null
+  const catMonthly = selectedCategory?.monthlyRate != null ? Number(selectedCategory.monthlyRate) : null
+  const catDeposit = selectedCategory ? Number(selectedCategory.depositValue) : null
+
+  const fmtBR = (v: number | null) =>
+    v == null ? "—" : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
@@ -115,7 +137,13 @@ export default function VehicleForm({ categories, vehicle, onSuccess }: Props) {
         </div>
         <div className="space-y-2">
           <label className="text-sm text-zinc-400 font-medium">Categoria *</label>
-          <select name="categoryId" required defaultValue={vehicle?.categoryId} className={inputCls}>
+          <select
+            name="categoryId"
+            required
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className={inputCls}
+          >
             <option value="">Selecione...</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -177,6 +205,66 @@ export default function VehicleForm({ categories, vehicle, onSuccess }: Props) {
             </select>
           </div>
         )}
+      </div>
+
+      {/* Overrides de preço (opcional) */}
+      <div className="pt-4 border-t border-zinc-800">
+        <div className="mb-3">
+          <h4 className="text-sm font-bold text-white">Preço deste veículo (opcional)</h4>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Deixe em branco para usar o preço da categoria. Preencha apenas se este veículo cobra diferente da categoria.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-400 font-medium">Diária (R$)</label>
+            <input
+              name="dailyRate"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={decToStr(vehicle?.dailyRate)}
+              placeholder={catDaily != null ? `Categoria: ${fmtBR(catDaily)}` : "Ex: 150.00"}
+              className={inputCls}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-400 font-medium">Caução (R$)</label>
+            <input
+              name="depositValue"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={decToStr(vehicle?.depositValue)}
+              placeholder={catDeposit != null ? `Categoria: ${fmtBR(catDeposit)}` : "Ex: 500.00"}
+              className={inputCls}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-400 font-medium">Semanal (R$)</label>
+            <input
+              name="weeklyRate"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={decToStr(vehicle?.weeklyRate)}
+              placeholder={catWeekly != null ? `Categoria: ${fmtBR(catWeekly)}` : "Opcional"}
+              className={inputCls}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-zinc-400 font-medium">Mensal (R$)</label>
+            <input
+              name="monthlyRate"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={decToStr(vehicle?.monthlyRate)}
+              placeholder={catMonthly != null ? `Categoria: ${fmtBR(catMonthly)}` : "Opcional"}
+              className={inputCls}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Photo upload */}

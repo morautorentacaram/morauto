@@ -172,7 +172,7 @@ export default async function Home() {
                     </div>
                     <div className="flex items-center justify-between mt-4">
                       <div>
-                        <span className="text-2xl font-black text-[#d4a017]">{formatCurrency(Number(v.category.dailyRate))}</span>
+                        <span className="text-2xl font-black text-[#d4a017]">{formatCurrency(Number(v.dailyRate ?? v.category.dailyRate))}</span>
                         <span className="text-zinc-500 text-xs ml-1">/dia</span>
                       </div>
                       <Link href={`/checkout/${v.id}`} className="bg-white text-black hover:bg-[#d4a017] font-bold px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-1">

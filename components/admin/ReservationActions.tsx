@@ -28,7 +28,7 @@ export default function ReservationActions({ reservation }: { reservation: Reser
   function recalc(sd: string, ed: string) {
     if (!sd || !ed) return setPreview(null)
     const days = Math.max(1, Math.ceil((new Date(ed).getTime() - new Date(sd).getTime()) / 86400000))
-    setPreview({ days, total: days * Number(reservation.vehicle.category.dailyRate) })
+    setPreview({ days, total: days * Number(reservation.vehicle.dailyRate ?? reservation.vehicle.category.dailyRate) })
   }
 
   function handleEdit(e: React.FormEvent<HTMLFormElement>) {

@@ -19,7 +19,9 @@ export default function CheckoutWizard({ vehicle, currentSession, currentCustome
 
   const diffTime = (new Date(endDate).getTime() - new Date(startDate).getTime());
   const diárias = diffTime > 0 ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : 0;
-  const totalValue = diárias * Number(vehicle.category.dailyRate);
+  const effDaily = Number(vehicle.dailyRate ?? vehicle.category.dailyRate);
+  const effDeposit = Number(vehicle.depositValue ?? vehicle.category.depositValue);
+  const totalValue = diárias * effDaily;
 
   async function handleCheckout(formData: FormData) {
     setLoading(true);
@@ -171,7 +173,7 @@ export default function CheckoutWizard({ vehicle, currentSession, currentCustome
               </div>
               <div className="flex justify-between border-b border-zinc-800 pb-4">
                 <span className="text-zinc-400">Caução de Segurança</span>
-                <span className="text-white font-bold">{formatCurrency(Number(vehicle.category.depositValue))}</span>
+                <span className="text-white font-bold">{formatCurrency(effDeposit)}</span>
               </div>
               <p className="text-sm text-zinc-500 font-light mt-2">
                 * O valor da Caução não será cobrado agora, mas bloqueado no seu cartão de crédito (PIX ou Dinheiro não aceitos para caução) no momento da retirada.

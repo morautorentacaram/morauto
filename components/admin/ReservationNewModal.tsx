@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { X, Loader2, Plus } from "lucide-react"
 
 type Customer = { id: string; document: string; user: { name: string | null } }
-type Vehicle  = { id: string; brand: string; model: string; plate: string; category: { name: string; dailyRate: any } }
+type Vehicle  = { id: string; brand: string; model: string; plate: string; dailyRate?: any; category: { name: string; dailyRate: any } }
 
 export default function ReservationNewModal({
   customers,
@@ -30,7 +30,7 @@ export default function ReservationNewModal({
     setSelectedVehicle(v ?? null)
     if (v && sd && ed) {
       const days = Math.max(1, Math.ceil((new Date(ed).getTime() - new Date(sd).getTime()) / 86400000))
-      setPreview({ days, total: days * Number(v.category.dailyRate) })
+      setPreview({ days, total: days * Number(v.dailyRate ?? v.category.dailyRate) })
     } else {
       setPreview(null)
     }
@@ -111,7 +111,7 @@ export default function ReservationNewModal({
               <div className="flex justify-between text-zinc-400">
                 <span>Diária</span>
                 <span className="text-white">
-                  {selectedVehicle && new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(selectedVehicle.category.dailyRate))}
+                  {selectedVehicle && new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(selectedVehicle.dailyRate ?? selectedVehicle.category.dailyRate))}
                 </span>
               </div>
               <div className="flex justify-between font-bold border-t border-zinc-700 pt-2 mt-2">

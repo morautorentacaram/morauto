@@ -128,6 +128,12 @@ model Vehicle {
   status       VehicleStatus @default(AVAILABLE)
   photos       String[]
 
+  // Overrides opcionais — quando preenchidos sobrepõem o preço da categoria
+  dailyRate    Decimal?      @db.Decimal(10, 2)
+  weeklyRate   Decimal?      @db.Decimal(10, 2)
+  monthlyRate  Decimal?      @db.Decimal(10, 2)
+  depositValue Decimal?      @db.Decimal(10, 2)
+
   categoryId   String
   category     Category      @relation(fields: [categoryId], references: [id])
 
