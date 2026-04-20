@@ -21,16 +21,19 @@ export default function ContractPdfButton({ contract }: Props) {
     setCaucaoValue(defaultCaucao > 0 ? String(defaultCaucao) : "")
     setUseCaucao(defaultCaucao > 0)
 
-    // Pré-preenche devolução: data do endDate + horário do startDate (mesmo horário da retirada)
-    const start = new Date(contract.reservation.startDate)
+    // Pré-preenche devolução: data do endDate (Manaus) + horário em que o contrato foi gerado
     const end   = new Date(contract.reservation.endDate)
 
-    // Data de devolução: usa a data UTC do endDate (evita shift de fuso — meia-noite UTC = dia anterior em Manaus)
-    setReturnDate(end.toISOString().slice(0, 10))
+    // Data de devolução em Manaus (YYYY-MM-DD)
+    const endDateManaus = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(end)
+    setReturnDate(endDateManaus)
 
-    // Horário da retirada no formato HH:MM (fuso Manaus) — mesmo horário para devolução
-    const startTime = start.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
-    setReturnTime(startTime.replace("h", "").trim())
+    // Horário de referência: quando o contrato foi gerado (em Manaus), HH:MM
+    const ref = new Date(contract.createdAt)
+    const refTime = ref.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+    setReturnTime(refTime.replace("h", "").trim())
 
     setShowModal(true)
   }
@@ -94,6 +97,11 @@ export default function ContractPdfButton({ contract }: Props) {
       const fmtDateTime = (d: string | Date) => {
         const dt = new Date(d)
         return `${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })}h ${fmtDate(dt)}`
+      }
+      const fmtDateTimeAt = (planned: string | Date, reference: string | Date) => {
+        const dateStr = fmtDate(planned)
+        const time = new Date(reference).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+        return `${time}h ${dateStr}`
       }
 
       const returnDateTime = getReturnDateTime()
@@ -232,7 +240,7 @@ export default function ContractPdfButton({ contract }: Props) {
         startY: y,
         head: [["Campo", "Valor"]],
         body: [
-          ["Retirada",        fmtDateTime(reservation.startDate)],
+          ["Retirada",        fmtDateTimeAt(reservation.startDate, contract.createdAt)],
           ["Devolução",       fmtDateTime(returnDateTime)],
           ["Duração",         `${days} dia(s)`],
           ["Diária",          fmt(dailyRate)],

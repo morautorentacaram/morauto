@@ -20,18 +20,10 @@ function fmt(v: number) {
 function fmtDate(d: Date | string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: TZ })
 }
-function fmtDateTime(d: Date | string) {
-  const dt = new Date(d)
-  const time = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
-  return `${time}h — ${fmtDate(dt)}`
-}
-/** Para endDate: usa a data UTC (evita shift UTC-4 que faz meia-noite UTC virar dia anterior em Manaus)
- *  e o horário da retirada (startDate) como referência de hora. */
-function fmtEndDateTime(endDate: Date | string, startDate: Date | string) {
-  const utcDay = new Date(endDate).toISOString().slice(0, 10) // "2026-04-13"
-  const [y, m, d] = utcDay.split("-")
-  const dateStr = `${d}/${m}/${y}`
-  const time = new Date(startDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
+/** Combina a data planejada (dia em Manaus) com o horário de referência (ex.: geração do contrato). */
+function fmtDateTimeAt(planned: Date | string, reference: Date | string) {
+  const dateStr = fmtDate(planned)
+  const time = new Date(reference).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
   return `${time}h — ${dateStr}`
 }
 function fmtDateLong(d: Date | string) {
@@ -185,8 +177,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           <div>
             <SectionTitle icon={<DollarSign size={14} />} label="Período, Valores e Condições Financeiras" />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-              <InfoCell label="Retirada"       value={fmtDateTime(reservation.startDate)} />
-              <InfoCell label="Devolução"      value={fmtEndDateTime(reservation.endDate, reservation.startDate)} />
+              <InfoCell label="Retirada"       value={fmtDateTimeAt(reservation.startDate, contract.createdAt)} />
+              <InfoCell label="Devolução"      value={fmtDateTimeAt(reservation.endDate,   contract.createdAt)} />
               <InfoCell label="Duração"        value={`${days} dia(s)`} />
               <InfoCell label="Diária"         value={fmt(dailyRate)} />
               <InfoCell label="Valor Total"    value={fmt(totalValue)} gold />
