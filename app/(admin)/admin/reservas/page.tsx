@@ -1,6 +1,5 @@
 import { getReservations } from "@/app/actions/reservation.actions"
 type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
-import { generateRentalContract } from "@/app/actions/contract.actions"
 import { getCustomers } from "@/app/actions/customer.actions"
 import { getAvailableVehicles } from "@/app/actions/vehicle.actions"
 import { formatCurrency } from "@/lib/utils"
@@ -8,6 +7,7 @@ import StatusSelector from "@/components/admin/StatusSelector"
 import ReservationNewButton from "@/components/admin/ReservationNewButton"
 import ReservationActions from "@/components/admin/ReservationActions"
 import ReservationSearch from "@/components/admin/ReservationSearch"
+import GenerateContractInline from "@/components/admin/GenerateContractInline"
 import Link from "next/link"
 import {
   CalendarDays, Car, FileText,
@@ -186,12 +186,7 @@ export default async function ReservationsPage({
                           <FileText size={11} /> {r.contract.number}
                         </Link>
                       ) : r.status !== "CANCELLED" ? (
-                        <form action={async () => { "use server"; await generateRentalContract(r.id) }}>
-                          <button type="submit"
-                            className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-2 py-1 rounded-lg transition-colors">
-                            <FileText size={11} /> Gerar
-                          </button>
-                        </form>
+                        <GenerateContractInline reservationId={r.id} />
                       ) : <span className="text-zinc-600 text-xs">—</span>}
                     </td>
 

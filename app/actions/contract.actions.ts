@@ -123,15 +123,10 @@ export async function generateRentalContract(reservationId: string) {
     if (!reservation) return { error: "Reserva não encontrada." }
 
     const existing = await db.rentalContract.findUnique({ where: { reservationId } })
-    if (existing) return { contractId: existing.id }
+    if (existing) return { success: true, contractId: existing.id }
 
-    const now   = new Date()
-    const year  = now.getFullYear()
-    const count = await db.rentalContract.count()
-    const number = `MOR-${year}-${String(count + 1).padStart(4, "0")}`
-
-    // Set actual pickup time to now; keep end date as-is
-    const startDate = now
+    // Preserve reservation's planned dates — never overwrite startDate
+    const startDate = new Date(reservation.startDate)
     const endDate   = new Date(reservation.endDate)
 
     const days = Math.max(
@@ -139,25 +134,40 @@ export async function generateRentalContract(reservationId: string) {
       Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
     )
 
-    // Update reservation startDate to actual pickup time
-    await db.reservation.update({
-      where: { id: reservationId },
-      data: { startDate, status: "CONFIRMED" },
-    })
+    // Unique contract number — retry if collision on @unique
+    const year = new Date().getFullYear()
+    const terms = buildContractTerms({ reservation, days, number: "__PLACEHOLDER__" })
 
-    const reservationWithNow = { ...reservation, startDate }
-    const terms = buildContractTerms({ reservation: reservationWithNow, days, number })
-
-    const contract = await db.rentalContract.create({
-      data: { number, terms, reservationId, customerId: reservation.customerId },
+    const contract = await db.$transaction(async (tx) => {
+      const count = await tx.rentalContract.count()
+      let n = count + 1
+      // Small retry loop in case of collisions from deleted/re-created contracts
+      for (let i = 0; i < 10; i++) {
+        const candidate = `MOR-${year}-${String(n).padStart(4, "0")}`
+        const clash = await tx.rentalContract.findUnique({ where: { number: candidate } })
+        if (!clash) {
+          const finalTerms = terms.replace("__PLACEHOLDER__", candidate)
+          const c = await tx.rentalContract.create({
+            data: { number: candidate, terms: finalTerms, reservationId, customerId: reservation.customerId },
+          })
+          await tx.reservation.update({
+            where: { id: reservationId },
+            data: { status: "CONFIRMED" },
+          })
+          return c
+        }
+        n++
+      }
+      throw new Error("Não foi possível gerar número único de contrato.")
     })
 
     revalidatePath("/admin/contratos")
     revalidatePath("/admin/reservas")
     return { success: true, contractId: contract.id }
-  } catch (error) {
-    console.error(error)
-    return { error: "Erro ao gerar contrato." }
+  } catch (error: any) {
+    console.error("[generateRentalContract]", error)
+    const msg = error?.message || "Erro desconhecido"
+    return { error: `Erro ao gerar contrato: ${msg}` }
   }
 }
 

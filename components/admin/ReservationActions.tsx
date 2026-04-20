@@ -11,7 +11,7 @@ type Reservation = {
   endDate: Date
   status: string
   notes?: string | null
-  vehicle: { brand: string; model: string; plate: string; category: { dailyRate: any } }
+  vehicle: { brand: string; model: string; plate: string; dailyRate?: any; category: { dailyRate: any } }
   customer: { user: { name: string | null } }
 }
 

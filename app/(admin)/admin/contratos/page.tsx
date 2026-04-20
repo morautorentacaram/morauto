@@ -1,9 +1,13 @@
-import { getContracts, generateRentalContract } from "@/app/actions/contract.actions"
+import { getContracts } from "@/app/actions/contract.actions"
 import { getReservations } from "@/app/actions/reservation.actions"
 type ReservationType = Awaited<ReturnType<typeof getReservations>>[0]
 import { formatCurrency } from "@/lib/utils"
 import { FilePlus } from "lucide-react"
 import ContractManager from "@/components/admin/ContractManager"
+import GenerateContractButton from "@/components/admin/GenerateContractButton"
+
+const fmtDate = (d: Date | string) =>
+  new Date(d).toLocaleDateString("pt-BR", { timeZone: "America/Manaus" })
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Contratos — Morauto Admin" }
@@ -51,14 +55,9 @@ export default async function ContractsPage() {
               <div key={r.id} className="flex items-center justify-between bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
                 <div>
                   <p className="text-white font-medium">{r.customer.user.name} — {r.vehicle.brand} {r.vehicle.model}</p>
-                  <p className="text-zinc-400 text-sm">{new Date(r.startDate).toLocaleDateString("pt-BR")} → {new Date(r.endDate).toLocaleDateString("pt-BR")} • {formatCurrency(Number(r.totalValue))}</p>
+                  <p className="text-zinc-400 text-sm">{fmtDate(r.startDate)} → {fmtDate(r.endDate)} • {formatCurrency(Number(r.totalValue))}</p>
                 </div>
-                <form action={async () => { "use server"; await generateRentalContract(r.id) }}>
-                  <button type="submit" className="flex items-center gap-2 bg-[#d4a017] hover:bg-[#b8880f] text-black font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
-                    <FilePlus className="w-4 h-4" />
-                    Gerar Contrato
-                  </button>
-                </form>
+                <GenerateContractButton reservationId={r.id} />
               </div>
             ))}
           </div>
