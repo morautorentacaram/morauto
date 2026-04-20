@@ -147,9 +147,9 @@ export default async function ReservationsPage({
                       <div className="flex items-center gap-1.5 text-zinc-300 text-sm">
                         <CalendarDays size={13} className="text-zinc-500 flex-shrink-0" />
                         <span>
-                          {new Date(r.startDate).toLocaleDateString("pt-BR")}
+                          {new Date(r.startDate).toLocaleDateString("pt-BR", { timeZone: "America/Manaus" })}
                           <span className="text-zinc-600 mx-1">→</span>
-                          {new Date(r.endDate).toLocaleDateString("pt-BR")}
+                          {new Date(r.endDate).toLocaleDateString("pt-BR", { timeZone: "America/Manaus" })}
                         </span>
                       </div>
                       {r.status === "ACTIVE" && (

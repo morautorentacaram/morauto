@@ -4,12 +4,20 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { notifyReservationCreated, notifyReservationConfirmed } from "@/lib/whatsapp/notify";
 
+// Parse "YYYY-MM-DD" from a date input as Manaus local midnight (UTC-4),
+// so saved dates reflect what the user typed when rendered in Manaus tz.
+function parseLocalDate(s: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+  if (!m) return new Date(s)
+  return new Date(`${s}T00:00:00-04:00`)
+}
+
 export async function createReservation(formData: FormData) {
   try {
     const customerId  = formData.get("customerId") as string
     const vehicleId   = formData.get("vehicleId")  as string
-    const startDate   = new Date(formData.get("startDate") as string)
-    const endDate     = new Date(formData.get("endDate")   as string)
+    const startDate   = parseLocalDate(formData.get("startDate") as string)
+    const endDate     = parseLocalDate(formData.get("endDate")   as string)
     const notes       = formData.get("notes") as string | null
 
     if (!customerId || !vehicleId || !startDate || !endDate)
@@ -68,8 +76,8 @@ export async function createReservation(formData: FormData) {
 
 export async function updateReservation(id: string, formData: FormData) {
   try {
-    const startDate = new Date(formData.get("startDate") as string)
-    const endDate   = new Date(formData.get("endDate")   as string)
+    const startDate = parseLocalDate(formData.get("startDate") as string)
+    const endDate   = parseLocalDate(formData.get("endDate")   as string)
     const notes     = formData.get("notes") as string | null
 
     if (endDate <= startDate)
