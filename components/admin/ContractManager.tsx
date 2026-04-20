@@ -22,6 +22,9 @@ type Contract = {
   customer: { user: { name: string | null } }
 }
 
+const fmtDate = (d: Date | string) =>
+  new Date(d).toLocaleDateString("pt-BR", { timeZone: "America/Manaus" })
+
 export default function ContractManager({ contracts }: { contracts: Contract[] }) {
   const [editing, setEditing] = useState<Contract | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -153,8 +156,8 @@ export default function ContractManager({ contracts }: { contracts: Contract[] }
                     <div className="text-zinc-500 text-xs">{c.reservation.vehicle.plate}</div>
                   </td>
                   <td className="px-6 py-4 text-zinc-400 text-sm">
-                    {new Date(c.reservation.startDate).toLocaleDateString("pt-BR")} →<br />
-                    {new Date(c.reservation.endDate).toLocaleDateString("pt-BR")}
+                    {fmtDate(c.reservation.startDate)} →<br />
+                    {fmtDate(c.reservation.endDate)}
                   </td>
                   <td className="px-6 py-4 text-[#d4a017] font-bold text-sm">
                     {formatCurrency(Number(c.reservation.totalValue))}
@@ -163,7 +166,7 @@ export default function ContractManager({ contracts }: { contracts: Contract[] }
                     {c.signedAt ? (
                       <div className="flex items-center gap-1 text-emerald-400 text-sm">
                         <CheckCircle className="w-4 h-4" />
-                        {new Date(c.signedAt).toLocaleDateString("pt-BR")}
+                        {fmtDate(c.signedAt)}
                       </div>
                     ) : (
                       <span className="text-amber-400 text-xs">Pendente</span>
