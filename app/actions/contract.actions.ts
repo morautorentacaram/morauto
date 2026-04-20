@@ -23,6 +23,20 @@ function fmt(v: number) {
 
 const TZ = "America/Manaus"
 
+// Returns a Date whose Y-M-D matches `planned` in Manaus tz,
+// but whose H:M:S matches `now` in Manaus tz.
+function combineDateWithNow(planned: Date | string, now: Date): Date {
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date(planned)) // "YYYY-MM-DD"
+
+  const timeParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TZ, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).format(now) // "HH:MM:SS"
+
+  return new Date(`${dateParts}T${timeParts}-04:00`)
+}
+
 function fmtDate(d: Date | string) {
   return new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: TZ })
 }
@@ -125,18 +139,20 @@ export async function generateRentalContract(reservationId: string) {
     const existing = await db.rentalContract.findUnique({ where: { reservationId } })
     if (existing) return { success: true, contractId: existing.id }
 
-    // Preserve reservation's planned dates — never overwrite startDate
-    const startDate = new Date(reservation.startDate)
-    const endDate   = new Date(reservation.endDate)
+    // Planned date parts from reservation; time-of-day = now (Manaus)
+    const now = new Date()
+    const displayStart = combineDateWithNow(reservation.startDate, now)
+    const displayEnd   = combineDateWithNow(reservation.endDate,   now)
 
     const days = Math.max(
       1,
-      Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      Math.ceil((new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / (1000 * 60 * 60 * 24))
     )
 
     // Unique contract number — retry if collision on @unique
-    const year = new Date().getFullYear()
-    const terms = buildContractTerms({ reservation, days, number: "__PLACEHOLDER__" })
+    const year = now.getFullYear()
+    const reservationForTerms = { ...reservation, startDate: displayStart, endDate: displayEnd }
+    const terms = buildContractTerms({ reservation: reservationForTerms, days, number: "__PLACEHOLDER__" })
 
     const contract = await db.$transaction(async (tx) => {
       const count = await tx.rentalContract.count()
