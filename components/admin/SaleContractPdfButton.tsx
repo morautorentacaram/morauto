@@ -300,20 +300,20 @@ async function gerarAVista(contract: any) {
   para(`Declaro para os devidos fins que examinei e recebi, nesta data o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas. Declaro ainda estar ciente de que se trata de um veículo usado, no estado em que se encontra e com as seguintes garantias abaixo especificadas.`)
   y += 2
 
-  const detalhes = `VEÍCULO ${vNome.toUpperCase()}, ANO FAB ${vehicle.year}/ MODELO ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, CHASSI ${vehicle.chassi ?? "N/I"}, COMBUSTÍVEL ${vehicle.fuelType ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, KM ${Number(vehicleKm).toLocaleString("pt-BR")}, COMPRADOR ${String(lead.name ?? "").toUpperCase()}${lead.document ? ", CPF/CNPJ: " + lead.document : ""}. Data de entrega: ${deliveryDate}.`
+  const detalhes = `O VEÍCULO Marca/Modelo /${vNome.toUpperCase()}/ ANO FAB ${vehicle.year}, ANO MOD. ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, COD RENAVAM ${vehicle.renavam ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, CHASSI ${vehicle.chassi ?? "N/I"}, Combustível: ${vehicle.fuelType ?? "N/I"}. ${Number(vehicleKm).toLocaleString("pt-BR")} KM.`
   para(detalhes, true)
   y += 4
 
   title("CERTIFICADO DE QUALIDADE")
-  para(`MORAUTO VEÍCULOS, tendo promovido especificada vistoria no veículo acima descrito, garante o motor (suas partes internas de força) e a caixa de marcha somente as partes internas (engrenagens), por um período de 90 (noventa) dias e / ou 5.000 km (cinco mil Quilômetros), o que ocorrer primeiro a contar da presente data.`)
+  para(`MORAUTO VEÍCULOS, tendo promovido especificada vistoria no veículo acima descrito, garante o motor (suas partes internas de força) e a caixa de marcha somente as partes internas (engrenagens), por um período de 90 (noventa) dias e / ou 5.000 km (Cinco Mil Quilômetros), o que ocorrer primeiro a contar da presente data.`, true)
   para(`A garantia é limitada a defeitos no bloco e na caixa de câmbio do veículo desde que observados as seguintes regras.`)
   y += 1
 
   const items = [
     "A garantia restringe-se ao bloco de motor e suas partes e a caixa de câmbio e suas partes internas, não se estendendo aos demais componentes externos e/ou periféricos do bloco do motor e desta caixa de câmbio.",
-    "Caberá exclusivamente MORAUTO VEICULOS, decisão de reparos ou substituição de peças que apresentarem defeitos.",
+    "Caberá exclusivamente MORAUTO VEICULOS, decisão de reparos ou substituirá peças que apresentarem defeitos.",
     "Os serviços de reparos e/ou substituição serão efetuados exclusivamente por oficina autorizada por escrito pela MORAUTO LOCADORA VEICULOS.",
-    "Os serviços de reparos e/ou substituições serão inteiramente gratuitos para o cliente adquirente, exceto as seguintes despesas: Óleo lubrificante, combustível, reboques, imobilização, deslocamento de pessoal, danos materiais ou pessoais causados por adquirente ou a terceiros.",
+    "Os serviços de reparos e/ou substituições serão inteiramente gratuitos para o cliente adquirente, exceto as seguintes despesas: Óleo lubrificante, combustível, reboques, imobilização, deslocamento de pessoal, danos materiais ou pessoais causados por adquirente ou a terceiros. A garantia, objeto deste instrumento, não abrange responsabilidades por perdas, e danos ou lucros cessantes decorrentes de paralisações do veículo para reparo ou substituições dos componentes garantidos, cessará de pleno direito (CANCELAMENTO DA GARANTIA), nos seguintes casos.",
   ]
   ;["I","II","III","IV"].forEach((n, i) => {
     checkPage(10)
@@ -328,10 +328,10 @@ async function gerarAVista(contract: any) {
   const subItems = [
     "Uso inadequado do veículo, entre estes, mas não somente, sua utilização em competições de qualquer natureza ou espécie;",
     "Uso do veículo submetendo-o a abuso ou carga incompatível;",
-    "Modificações de combustível ou lubrificantes para ele recomendado;",
+    "Modificações combustível ou lubrificantes para ele recomendado;",
     "Reparos ou assistência do veículo por outras oficinas;",
     "Danificação do veículo por mau uso ou por acidente, de toda e qualquer natureza;",
-    "Violação e/ou alteração do velocímetro ou seu cabo.",
+    "Violação e/ou alteração do velocímetro ou seu cabo;",
   ]
   ;["A","B","C","D","E","F"].forEach((n, i) => {
     checkPage(8)
@@ -341,11 +341,14 @@ async function gerarAVista(contract: any) {
     lines.forEach((l: string) => { checkPage(5); doc.text(l, 22, y); y += 5 })
   })
 
+  y += 2
+  para(`Declaro estar ciente que tenho que trocar Correia e tensor.`)
+
   y += 4
-  para(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`, true)
+  para(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`)
   y += 2
   doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0)
-  doc.text("TESTEMUNHAS:", W / 2, y, { align: "center" })
+  doc.text("TESTEMUNHAS:", W - 14, y, { align: "right" })
   y += 4
   signBlock()
 
@@ -615,38 +618,66 @@ async function gerarReservaDominio(contract: any) {
   signLine(14+sw+14, sw, "CPF:", "")
   y += 28
 
-  // Certificado de Entrega
+  // Certificado de Entrega + Qualidade (mesmo modelo do PDF de referência)
   doc.addPage(); header(); y += 2
   title("CERTIFICADO DE ENTREGA"); y += 4
-  paragraph(`Declaro para os devidos fins que examinei e recebi, nesta data, o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas.`)
+  paragraph(`Declaro para os devidos fins que examinei e recebi, nesta data o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas. Declaro ainda estar ciente de que se trata de um veículo usado, no estado em que se encontra e com as seguintes garantias abaixo especificadas.`)
   y += 2
-  autoTable(doc, {
-    startY: y,
-    body: [
-      ["Marca/Modelo", vNome], ["Ano Fab./Mod.", `${vehicle.year}/${vehicle.year}`],
-      ["Cor", (vehicle.color ?? "—").toUpperCase()], ["Placa", vehicle.plate ?? "N/I"],
-      ["RENAVAM", vehicle.renavam ?? "N/I"], ["Chassi", vehicle.chassi ?? "N/I"],
-      ["Combustível", vehicle.fuelType ?? "—"], ["KM na entrega", `${Number(vehicleKm).toLocaleString("pt-BR")} km`],
-      ["Comprador", String(lead.name ?? "").toUpperCase()], ["CPF", lead.document ?? "—"],
-      ["Data de entrega", deliveryDate],
-    ],
-    theme: "grid",
-    bodyStyles: { fontSize: 8, textColor: [30,30,30] as any, cellPadding: 2.5 },
-    columnStyles: { 0: { fontStyle: "bold", fillColor: [245,245,245] as any, cellWidth: 45 } },
-    styles: { lineColor: [200,200,200] as any },
-    margin: { left: 14, right: 14 },
-  })
-  y = (doc as any).lastAutoTable.finalY + 12
-  signLine(14, sw, String(lead.name ?? "COMPRADOR").toUpperCase(), `CPF: ${lead.document ?? "—"} — COMPRADOR`)
-  y += 28
+  paragraph(
+    `O VEÍCULO Marca/Modelo /${vNome.toUpperCase()}/ ANO FAB ${vehicle.year}, ANO MOD. ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, COD RENAVAM ${vehicle.renavam ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, CHASSI ${vehicle.chassi ?? "N/I"}, Combustível: ${vehicle.fuelType ?? "N/I"}. ${Number(vehicleKm).toLocaleString("pt-BR")} KM.`,
+    0, true,
+  )
+  y += 4
 
-  // Certificado de Qualidade
-  doc.addPage(); header(); y += 2
   title("CERTIFICADO DE QUALIDADE"); y += 4
-  paragraph(`MORAUTO VEÍCULOS garante o motor e a caixa de marcha (partes internas) por 90 (noventa) dias e/ou 3.000 km, o que ocorrer primeiro a contar da presente data.`)
+  paragraph(
+    `MORAUTO VEÍCULOS, tendo promovido especificada vistoria no veículo acima descrito, garante o motor (suas partes internas de força) e a caixa de marcha somente as partes internas (engrenagens), por um período de 90 (noventa) dias e / ou 5.000 km (Cinco Mil Quilômetros), o que ocorrer primeiro a contar da presente data.`,
+    0, true,
+  )
+  paragraph(`A garantia é limitada a defeitos no bloco e na caixa de câmbio do veículo desde que observados as seguintes regras.`)
+  y += 1
+
+  const qItems = [
+    "A garantia restringe-se ao bloco de motor e suas partes e a caixa de câmbio e suas partes internas, não se estendendo aos demais componentes externos e/ou periféricos do bloco do motor e desta caixa de câmbio.",
+    "Caberá exclusivamente MORAUTO VEICULOS, decisão de reparos ou substituirá peças que apresentarem defeitos.",
+    "Os serviços de reparos e/ou substituição serão efetuados exclusivamente por oficina autorizada por escrito pela MORAUTO LOCADORA VEICULOS.",
+    "Os serviços de reparos e/ou substituições serão inteiramente gratuitos para o cliente adquirente, exceto as seguintes despesas: Óleo lubrificante, combustível, reboques, imobilização, deslocamento de pessoal, danos materiais ou pessoais causados por adquirente ou a terceiros. A garantia, objeto deste instrumento, não abrange responsabilidades por perdas, e danos ou lucros cessantes decorrentes de paralisações do veículo para reparo ou substituições dos componentes garantidos, cessará de pleno direito (CANCELAMENTO DA GARANTIA), nos seguintes casos.",
+  ]
+  ;["I","II","III","IV"].forEach((n, i) => {
+    checkPage(10)
+    const txt = `${n}. ${qItems[i]}`
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(40, 40, 40)
+    const lines: string[] = doc.splitTextToSize(txt, W - 30)
+    lines.forEach((l: string) => { checkPage(5); doc.text(l, 16, y); y += 4.5 })
+    y += 1
+  })
+
+  y += 1
+  const qSubItems = [
+    "Uso inadequado do veículo, entre estes, mas não somente, sua utilização em competições de qualquer natureza ou espécie;",
+    "Uso do veículo submetendo-o a abuso ou carga incompatível;",
+    "Modificações combustível ou lubrificantes para ele recomendado;",
+    "Reparos ou assistência do veículo por outras oficinas;",
+    "Danificação do veículo por mau uso ou por acidente, de toda e qualquer natureza;",
+    "Violação e/ou alteração do velocímetro ou seu cabo;",
+  ]
+  ;["A","B","C","D","E","F"].forEach((n, i) => {
+    checkPage(8)
+    const txt = `${n}. ${qSubItems[i]}`
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(40, 40, 40)
+    const lines: string[] = doc.splitTextToSize(txt, W - 36)
+    lines.forEach((l: string) => { checkPage(5); doc.text(l, 22, y); y += 4.5 })
+  })
+
   y += 2
-  paragraph(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`, 0, true)
-  y += 10
+  paragraph(`Declaro estar ciente que tenho que trocar Correia e tensor.`)
+  y += 3
+  paragraph(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`)
+  y += 2
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0)
+  doc.text("TESTEMUNHAS:", W - 14, y, { align: "right" })
+  y += 6
+
   checkPage(52)
   signLine(14, sw, "RAIMUNDO VASCONCELOS MORAIS", "CNPJ: 22.994.313/0001-45")
   doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(80, 80, 80)
