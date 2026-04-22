@@ -17,6 +17,15 @@ const fmt  = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", 
 const fmtD = (d: string | Date) => new Date(d).toLocaleDateString("pt-BR")
 const fmtDL= (d: string | Date) => new Date(d).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
 
+// Parse a "YYYY-MM-DD" string as local midnight (user's tz) instead of UTC midnight.
+// Fixes "input 20/04 shown as 19/04" bug for users in UTC-X timezones (Manaus = UTC-4).
+function parseLocalDate(s: string | Date): Date {
+  if (s instanceof Date) return s
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)
+  if (!m) return new Date(s)
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+}
+
 function valorPorExtenso(valor: number): string {
   const un  = ["","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"]
   const dz  = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"]
@@ -548,7 +557,7 @@ async function gerarReservaDominio(contract: any) {
   } else if (installmentCount && installmentAmount && installmentStart) {
     y += 1
     const rows = []
-    const startDate = new Date(installmentStart)
+    const startDate = parseLocalDate(installmentStart)
     for (let i = 0; i < installmentCount; i++) {
       const d = new Date(startDate); d.setMonth(d.getMonth() + i)
       rows.push([`${i + 1}ª Promissória`, fmt(installmentAmount), fmtD(d)])
