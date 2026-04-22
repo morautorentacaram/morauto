@@ -368,7 +368,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           <p className="text-white font-bold text-sm font-outfit">MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS EIRELI</p>
           <p className="text-zinc-500 text-xs">CNPJ: 22.994.313/0001-45</p>
           <p className="text-zinc-600 text-xs">Av. Álvaro Maia 176-A · Pres. Vargas · CEP 69025-360 · Manaus-AM</p>
-          <p className="text-zinc-600 text-xs">(92) 3622-2883 / 99292-1946 · SEG a SEX: 8h às 17h | SÁB: 8h às 13h</p>
+          <p className="text-zinc-600 text-xs">(92) 3622-2883 / 99292-1946 · SEG a SEX: 8h às 17h | SÁB: 8h às 12h</p>
         </div>
       </div>
     </div>

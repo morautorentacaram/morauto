@@ -130,7 +130,7 @@ async function gerarAVista(contract: any) {
       doc.text("FUNCIONAMENTO", bx + bw / 2, by + 4, { align: "center" })
       doc.setFont("helvetica", "normal"); doc.setFontSize(5); doc.setTextColor(80, 80, 80)
       doc.text("SEG a SEX: 8h às 17h", bx + bw / 2, by + 7.5, { align: "center" })
-      doc.text("SÁB: 8h às 13h", bx + bw / 2, by + 10.5, { align: "center" })
+      doc.text("SÁB: 8h às 12h", bx + bw / 2, by + 10.5, { align: "center" })
       doc.text("DOM e Feriados: Fechado", bx + bw / 2, by + 13.5, { align: "center" })
     }
   }
@@ -472,7 +472,7 @@ async function gerarReservaDominio(contract: any) {
       doc.text("FUNCIONAMENTO", bx + bw / 2, H - 11.5, { align: "center" })
       doc.setFont("helvetica", "normal"); doc.setFontSize(5.5); doc.setTextColor(80, 80, 80)
       doc.text("SEG a SEX: 8h às 17h", bx + bw / 2, H - 8.5, { align: "center" })
-      doc.text("SÁB: 8h às 13h", bx + bw / 2, H - 5.5, { align: "center" })
+      doc.text("SÁB: 8h às 12h", bx + bw / 2, H - 5.5, { align: "center" })
       doc.text("DOM e Feriados: Fechado", bx + bw / 2, H - 2.5, { align: "center" })
       doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(150, 150, 150)
       doc.text(`Pág. ${i}/${pages}`, W - 14, H - 16.5)
@@ -737,7 +737,7 @@ async function gerarDacao(contract: any) {
       doc.text("FUNCIONAMENTO", bx + bw / 2, by + 4, { align: "center" })
       doc.setFont("helvetica", "normal"); doc.setFontSize(5); doc.setTextColor(80, 80, 80)
       doc.text("SEG a SEX: 8h às 17h", bx + bw / 2, by + 7.5, { align: "center" })
-      doc.text("SÁB: 8h às 13h", bx + bw / 2, by + 10.5, { align: "center" })
+      doc.text("SÁB: 8h às 12h", bx + bw / 2, by + 10.5, { align: "center" })
       doc.text("DOM e Feriados: Fechado", bx + bw / 2, by + 13.5, { align: "center" })
       doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(150, 150, 150)
       doc.text(`Pág. ${i}/${pages}`, W - 14, H - fh - 2)

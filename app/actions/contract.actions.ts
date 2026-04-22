@@ -13,7 +13,7 @@ const COMPANY = {
   city:    "Manaus-AM",
   phone:   "(92) 3622-2883 / 99292-1946",
   email:   "morautolucadora@hotmail.com",
-  hours:   "SEG a SEX: 8h às 17h | SÁB: 8h às 13h | DOM e Feriados: Fechado",
+  hours:   "SEG a SEX: 8h às 17h | SÁB: 8h às 12h | DOM e Feriados: Fechado",
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
