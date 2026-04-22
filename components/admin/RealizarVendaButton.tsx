@@ -3,7 +3,16 @@
 import { useState, useTransition } from "react"
 import { realizeSale } from "@/app/actions/sale.actions"
 import { useRouter } from "next/navigation"
-import { ShoppingCart, X, DollarSign, Loader2, FileText } from "lucide-react"
+import { ShoppingCart, X, DollarSign, Loader2, FileText, UserCheck } from "lucide-react"
+
+type CustomerOption = {
+  id:       string
+  name:     string
+  email:    string
+  phone:    string
+  document: string
+  address:  string
+}
 
 const PAYMENT_METHODS = [
   "À Vista",
@@ -19,9 +28,11 @@ const PAYMENT_METHODS = [
 export default function RealizarVendaButton({
   vehicleId,
   vehiclePrice,
+  customers = [],
 }: {
   vehicleId: string
   vehiclePrice: number
+  customers?: CustomerOption[]
 }) {
   const [showModal, setShowModal] = useState(false)
   const [error, setError] = useState("")
@@ -29,12 +40,25 @@ export default function RealizarVendaButton({
   const router = useRouter()
 
   // Buyer
+  const [customerId, setCustomerId] = useState("")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [document, setDocument] = useState("")
   const [address, setAddress] = useState("")
   const [rg, setRg] = useState("")
+
+  function handleCustomerSelect(id: string) {
+    setCustomerId(id)
+    if (!id) return
+    const c = customers.find((c) => c.id === id)
+    if (!c) return
+    setName(c.name)
+    setEmail(c.email)
+    setPhone(c.phone)
+    setDocument(c.document)
+    setAddress(c.address)
+  }
 
   // Payment
   const [salePrice, setSalePrice] = useState(String(vehiclePrice))
@@ -114,6 +138,27 @@ export default function RealizarVendaButton({
             <form onSubmit={handleSubmit} className="space-y-3 overflow-y-auto pr-1 flex-1">
               {/* Comprador */}
               <p className="text-zinc-500 text-xs uppercase tracking-wider">Dados do Comprador</p>
+
+              {customers.length > 0 && (
+                <div className="space-y-1">
+                  <label className={labelCls + " flex items-center gap-1.5"}>
+                    <UserCheck size={12} className="text-[#d4a017]" /> Cliente Cadastrado (opcional)
+                  </label>
+                  <select
+                    value={customerId}
+                    onChange={(e) => handleCustomerSelect(e.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">— Selecione para preencher automaticamente —</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}{c.document ? ` — ${c.document}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2 space-y-1">
                   <label className={labelCls}>Nome Completo *</label>

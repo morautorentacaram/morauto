@@ -1,4 +1,5 @@
 import { getSaleVehicleById, updateSaleVehicleStatus, finalizeSale } from "@/app/actions/sale.actions"
+import { getCustomers } from "@/app/actions/customer.actions"
 import { formatCurrency } from "@/lib/utils"
 import SaleLeadActions from "@/components/admin/SaleLeadActions"
 import RealizarVendaButton from "@/components/admin/RealizarVendaButton"
@@ -33,8 +34,20 @@ export default async function SaleVehicleDetailPage({
   if (!session) redirect("/login")
 
   const { id } = await params
-  const vehicle = await getSaleVehicleById(id)
+  const [vehicle, customers] = await Promise.all([
+    getSaleVehicleById(id),
+    getCustomers(),
+  ])
   if (!vehicle) notFound()
+
+  const customerOptions = customers.map((c: any) => ({
+    id:       c.id,
+    name:     c.user.name ?? "",
+    email:    c.user.email ?? "",
+    phone:    c.phone ?? "",
+    document: c.document ?? "",
+    address:  c.address ?? "",
+  }))
 
   const cfg = STATUS_CONFIG[vehicle.status] ?? STATUS_CONFIG.AVAILABLE
 
@@ -58,7 +71,7 @@ export default async function SaleVehicleDetailPage({
               {cfg.label}
             </span>
             {vehicle.status !== "SOLD" && (
-              <RealizarVendaButton vehicleId={vehicle.id} vehiclePrice={Number(vehicle.price)} />
+              <RealizarVendaButton vehicleId={vehicle.id} vehiclePrice={Number(vehicle.price)} customers={customerOptions} />
             )}
             <Link
               href={`/admin/vendas/${vehicle.id}/editar`}
