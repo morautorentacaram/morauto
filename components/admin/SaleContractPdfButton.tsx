@@ -963,6 +963,92 @@ async function gerarDacao(contract: any) {
   doc.text(`CPF ${TESTEMUNHA.cpf}`, 14 + twW / 2, y + 8, { align: "center" })
   doc.text("Nome / CPF", 14 + twW + 14 + twW / 2, y + 8, { align: "center" })
 
+  // ── PÁGINA FINAL — CERTIFICADO DE ENTREGA + QUALIDADE ───────────
+  doc.addPage(); pageHeader()
+  y += 2
+
+  const vNomeD    = `${vehicle.brand} ${vehicle.model}${vehicle.version ? " " + vehicle.version : ""}`
+  const vehicleKmD = payInfo.vehicleKm ?? String(vehicle.km ?? 0)
+
+  title("CERTIFICADO DE ENTREGA")
+  para(`Declaro para os devidos fins que examinei e recebi, nesta data o veículo descrito em perfeitas condições de uso, acompanhado dos devidos acessórios e ferramentas. Declaro ainda estar ciente de que se trata de um veículo usado, no estado em que se encontra e com as seguintes garantias abaixo especificadas.`)
+  y += 2
+
+  para(
+    `O VEÍCULO Marca/Modelo /${vNomeD.toUpperCase()}/ ANO FAB ${vehicle.year}, ANO MOD. ${vehicle.year}, COR ${(vehicle.color ?? "—").toUpperCase()}, COD RENAVAM ${vehicle.renavam ?? "N/I"}, PLACA ${vehicle.plate ?? "N/I"}, CHASSI ${vehicle.chassi ?? "N/I"}, Combustível: ${vehicle.fuelType ?? "N/I"}. ${Number(vehicleKmD).toLocaleString("pt-BR")} KM.`,
+    true,
+  )
+  y += 4
+
+  title("CERTIFICADO DE QUALIDADE")
+  para(`MORAUTO VEÍCULOS, tendo promovido especificada vistoria no veículo acima descrito, garante o motor (suas partes internas de força) e a caixa de marcha somente as partes internas (engrenagens), por um período de 90 (noventa) dias e / ou 5.000 km (Cinco Mil Quilômetros), o que ocorrer primeiro a contar da presente data.`, true)
+  para(`A garantia é limitada a defeitos no bloco e na caixa de câmbio do veículo desde que observados as seguintes regras.`)
+  y += 1
+
+  const certItems = [
+    "A garantia restringe-se ao bloco de motor e suas partes e a caixa de câmbio e suas partes internas, não se estendendo aos demais componentes externos e/ou periféricos do bloco do motor e desta caixa de câmbio.",
+    "Caberá exclusivamente MORAUTO VEICULOS, decisão de reparos ou substituirá peças que apresentarem defeitos.",
+    "Os serviços de reparos e/ou substituição serão efetuados exclusivamente por oficina autorizada por escrito pela MORAUTO LOCADORA VEICULOS.",
+    "Os serviços de reparos e/ou substituições serão inteiramente gratuitos para o cliente adquirente, exceto as seguintes despesas: Óleo lubrificante, combustível, reboques, imobilização, deslocamento de pessoal, danos materiais ou pessoais causados por adquirente ou a terceiros. A garantia, objeto deste instrumento, não abrange responsabilidades por perdas, e danos ou lucros cessantes decorrentes de paralisações do veículo para reparo ou substituições dos componentes garantidos, cessará de pleno direito (CANCELAMENTO DA GARANTIA), nos seguintes casos.",
+  ]
+  ;["I","II","III","IV"].forEach((n, i) => {
+    checkPage(10)
+    const txt = `${n}. ${certItems[i]}`
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+    const lines: string[] = doc.splitTextToSize(txt, W - 30)
+    lines.forEach((l: string) => { checkPage(5); doc.text(l, 16, y); y += 5 })
+    y += 1
+  })
+
+  y += 1
+  const certSubItems = [
+    "Uso inadequado do veículo, entre estes, mas não somente, sua utilização em competições de qualquer natureza ou espécie;",
+    "Uso do veículo submetendo-o a abuso ou carga incompatível;",
+    "Modificações combustível ou lubrificantes para ele recomendado;",
+    "Reparos ou assistência do veículo por outras oficinas;",
+    "Danificação do veículo por mau uso ou por acidente, de toda e qualquer natureza;",
+    "Violação e/ou alteração do velocímetro ou seu cabo;",
+  ]
+  ;["A","B","C","D","E","F"].forEach((n, i) => {
+    checkPage(8)
+    const txt = `${n}. ${certSubItems[i]}`
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(20, 20, 20)
+    const lines: string[] = doc.splitTextToSize(txt, W - 36)
+    lines.forEach((l: string) => { checkPage(5); doc.text(l, 22, y); y += 5 })
+  })
+
+  y += 2
+  para(`Declaro estar ciente que tenho que trocar Correia e tensor.`)
+
+  y += 4
+  para(`Manaus (AM), ${fmtDL(contract.signedAt ?? contract.createdAt)}.`)
+  y += 2
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0)
+  doc.text("TESTEMUNHAS:", W - 14, y, { align: "right" })
+  y += 8
+
+  // Assinaturas (vendedor + testemunha | comprador + CPF)
+  checkPage(50)
+  const sCertW = (W - 42) / 2
+  doc.setDrawColor(80, 80, 80); doc.setLineWidth(0.3)
+  doc.line(14, y, 14 + sCertW, y)
+  doc.line(14 + sCertW + 14, y, 14 + sCertW * 2 + 14, y)
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(20, 20, 20)
+  doc.text("RAIMUNDO VASCONCELOS MORAIS", 14 + sCertW / 2, y + 4.5, { align: "center" })
+  doc.text(TESTEMUNHA.name, 14 + sCertW + 14 + sCertW / 2, y + 4.5, { align: "center" })
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(80, 80, 80)
+  doc.text("VENDEDOR MORAUTO L. DE VEÍCULOS LTDA.", 14 + sCertW / 2, y + 8.5, { align: "center" })
+  doc.text(`CPF ${TESTEMUNHA.cpf}`, 14 + sCertW + 14 + sCertW / 2, y + 8.5, { align: "center" })
+  y += 18
+
+  doc.line(14, y, 14 + sCertW, y)
+  doc.line(14 + sCertW + 14, y, 14 + sCertW * 2 + 14, y)
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(20, 20, 20)
+  doc.text(String(lead.name ?? "COMPRADOR").toUpperCase(), 14 + sCertW / 2, y + 4.5, { align: "center" })
+  doc.text("CPF:", 14 + sCertW + 14 + sCertW / 2, y + 4.5, { align: "center" })
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(80, 80, 80)
+  doc.text("COMPRADOR", 14 + sCertW / 2, y + 8.5, { align: "center" })
+
   footer()
   doc.save(`contrato-dacao-${contract.number}.pdf`)
 }
