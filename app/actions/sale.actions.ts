@@ -260,24 +260,24 @@ export async function realizeSale(vehicleId: string, formData: FormData) {
     const vehicle = await db.saleVehicle.findUnique({ where: { id: vehicleId } })
     if (!vehicle) return { error: "Veículo não encontrado." }
 
+    const name  = (formData.get("name")  as string)?.trim()
+    const phone = (formData.get("phone") as string)?.trim()
+    if (!name)  return { error: "Nome do comprador é obrigatório." }
+    if (!phone) return { error: "Telefone do comprador é obrigatório." }
+
     // Create lead
     const lead = await db.saleLead.create({
       data: {
         vehicleId,
-        name:     formData.get("name") as string,
-        email:    formData.get("email") as string,
-        phone:    formData.get("phone") as string,
+        name,
+        email:    ((formData.get("email") as string) || "").trim(),
+        phone,
         document: (formData.get("document") as string) || null,
         address:  (formData.get("address") as string) || null,
         status:   "NEGOTIATING",
       },
       include: { vehicle: true },
     })
-
-    // Build contract number
-    const year   = new Date().getFullYear()
-    const count  = await db.saleContract.count()
-    const number = `MORSV-${year}-${String(count + 1).padStart(4, "0")}`
 
     const salePrice     = Number(formData.get("salePrice") ?? vehicle.price)
     const paymentMethod = (formData.get("paymentMethod") as string) || "A combinar"
@@ -291,28 +291,49 @@ export async function realizeSale(vehicleId: string, formData: FormData) {
     payDetails.vehicleKm = String(vehicle.km ?? 0)
     const paymentDetails = JSON.stringify(payDetails)
 
-    const terms = buildSaleContractTerms({ lead, number, salePrice, paymentMethod, paymentDetails })
+    // Contract number with collision retry (count-based numbering can clash when old contracts are deleted)
+    const year = new Date().getFullYear()
+    let   contract: { id: string; number: string } | null = null
+    let   lastErr: any = null
 
-    const contract = await db.saleContract.create({
-      data: { number, salePrice, paymentMethod, paymentDetails, terms, vehicleId, leadId: lead.id },
-    })
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const count  = await db.saleContract.count()
+      const number = `MORSV-${year}-${String(count + 1 + attempt).padStart(4, "0")}`
+      const terms  = buildSaleContractTerms({ lead, number, salePrice, paymentMethod, paymentDetails })
+      try {
+        contract = await db.saleContract.create({
+          data: { number, salePrice, paymentMethod, paymentDetails, terms, vehicleId, leadId: lead.id },
+          select: { id: true, number: true },
+        })
+        break
+      } catch (e: any) {
+        lastErr = e
+        // P2002 = unique constraint (number); retry with next suffix
+        if (e?.code !== "P2002") throw e
+      }
+    }
+    if (!contract) {
+      throw lastErr ?? new Error("Não foi possível gerar número único para o contrato.")
+    }
 
     await db.saleVehicle.update({ where: { id: vehicleId }, data: { status: "RESERVED" } })
 
     revalidatePath("/admin/vendas")
+    revalidatePath(`/admin/vendas/${vehicleId}`)
 
     notifySaleContractCreated({
       customerPhone: lead.phone,
       customerName: lead.name,
       vehicleLabel: `${vehicle.brand} ${vehicle.model}${vehicle.plate ? ` (${vehicle.plate})` : ""}`,
       totalValue: salePrice,
-      contractNumber: number,
+      contractNumber: contract.number,
     }).catch(() => {})
 
     return { success: true, contractId: contract.id }
-  } catch (e) {
-    console.error(e)
-    return { error: "Erro ao realizar venda." }
+  } catch (e: any) {
+    console.error("realizeSale error:", e)
+    const msg = e?.message || "Erro ao realizar venda."
+    return { error: `Erro ao realizar venda: ${msg}` }
   }
 }
 
