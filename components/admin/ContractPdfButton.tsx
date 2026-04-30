@@ -10,6 +10,7 @@ export default function ContractPdfButton({ contract }: Props) {
   const [showModal, setShowModal]     = useState(false)
   const [useCaucao, setUseCaucao]     = useState(true)
   const [caucaoValue, setCaucaoValue] = useState<string>("")
+  const [pickupTime, setPickupTime]   = useState<string>("")
   const [returnDate, setReturnDate]   = useState<string>("")
   const [returnTime, setReturnTime]   = useState<string>("")
 
@@ -30,10 +31,12 @@ export default function ContractPdfButton({ contract }: Props) {
     }).format(end)
     setReturnDate(endDateManaus)
 
-    // Horário de referência: quando o contrato foi gerado (em Manaus), HH:MM
+    // Horário de retirada: quando o contrato foi gerado (em Manaus), HH:MM
     const ref = new Date(contract.createdAt)
     const refTime = ref.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: TZ })
-    setReturnTime(refTime.replace("h", "").trim())
+    const refTimeClean = refTime.replace("h", "").trim()
+    setPickupTime(refTimeClean)
+    setReturnTime(refTimeClean)
 
     setShowModal(true)
   }
@@ -105,6 +108,10 @@ export default function ContractPdfButton({ contract }: Props) {
       }
 
       const returnDateTime = getReturnDateTime()
+      const pickupDateManaus = new Intl.DateTimeFormat("en-CA", {
+        timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+      }).format(new Date(reservation.startDate))
+      const pickupDateTime = new Date(`${pickupDateManaus}T${pickupTime || "00:00"}:00-04:00`)
       // Conta diárias pela diferença de datas de calendário em Manaus (ignora horário)
       const toManausDate = (d: Date) => {
         const [y, m, day] = new Intl.DateTimeFormat("en-CA", {
@@ -247,7 +254,7 @@ export default function ContractPdfButton({ contract }: Props) {
         startY: y,
         head: [["Campo", "Valor"]],
         body: [
-          ["Retirada",        fmtDateTimeAt(reservation.startDate, contract.createdAt)],
+          ["Retirada",        fmtDateTime(pickupDateTime)],
           ["Devolução",       fmtDateTime(returnDateTime)],
           ["Duração",         `${days} dia(s)`],
           ["Diária",          fmt(dailyRate)],
@@ -422,6 +429,17 @@ export default function ContractPdfButton({ contract }: Props) {
               <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
                 <X size={18} />
               </button>
+            </div>
+
+            {/* Retirada — hora */}
+            <div className="mb-4">
+              <p className="text-zinc-400 text-xs mb-2 font-medium">Horário de retirada</p>
+              <input
+                type="time"
+                value={pickupTime}
+                onChange={e => setPickupTime(e.target.value)}
+                className="w-28 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+              />
             </div>
 
             {/* Devolução — data e hora */}
