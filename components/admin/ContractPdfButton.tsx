@@ -105,9 +105,16 @@ export default function ContractPdfButton({ contract }: Props) {
       }
 
       const returnDateTime = getReturnDateTime()
-      const days = Math.max(1, Math.ceil(
-        (returnDateTime.getTime() - new Date(reservation.startDate).getTime()) / 86400000
-      ))
+      // Conta diárias pela diferença de datas de calendário em Manaus (ignora horário)
+      const toManausDate = (d: Date) => {
+        const [y, m, day] = new Intl.DateTimeFormat("en-CA", {
+          timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+        }).format(d).split("-").map(Number)
+        return new Date(y, m - 1, day)
+      }
+      const days = Math.max(1,
+        (toManausDate(returnDateTime).getTime() - toManausDate(new Date(reservation.startDate)).getTime()) / 86400000
+      )
       const dailyRate  = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
       const totalValue = Number(reservation.totalValue)
       const kmExcess   = 0.58
@@ -381,7 +388,7 @@ export default function ContractPdfButton({ contract }: Props) {
         doc.setFontSize(6.5)
         doc.setFont("helvetica", "bold")
         doc.setTextColor(...white)
-        doc.text("MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS EIRELI  ·  CNPJ: 22.994.313/0001-45", W / 2, H - 7, { align: "center" })
+        doc.text("MORAUTO LOCADORA DE VEÍCULOS E MÁQUINAS LTDA  ·  CNPJ: 22.994.313/0001-45", W / 2, H - 7, { align: "center" })
         doc.setFont("helvetica", "normal")
         doc.setTextColor(...gray)
         doc.text("Av. Álvaro Maia 176-A, Presidente Vargas, CEP 69025-360, Manaus-AM  ·  (92) 3622-2883", W / 2, H - 3.5, { align: "center" })
