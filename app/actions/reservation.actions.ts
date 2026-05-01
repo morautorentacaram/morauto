@@ -41,7 +41,8 @@ export async function createReservation(formData: FormData) {
 
     const days = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
     const effDaily = Number(vehicle.dailyRate ?? vehicle.category.dailyRate)
-    const totalValue = effDaily * days
+    const customTotal = formData.get("customTotal")
+    const totalValue = customTotal && Number(customTotal) > 0 ? Number(customTotal) : effDaily * days
 
     const reservation = await db.reservation.create({
       data: { customerId, vehicleId, startDate, endDate, totalValue, status: "PENDING", notes: notes || null },

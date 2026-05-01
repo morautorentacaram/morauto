@@ -19,7 +19,8 @@ export default function ReservationNewModal({
 }) {
   const [error, setError]           = useState("")
   const [isPending, startTransition] = useTransition()
-  const [preview, setPreview]        = useState<{ days: number; total: number } | null>(null)
+  const [preview, setPreview]        = useState<{ days: number; auto: number } | null>(null)
+  const [customTotal, setCustomTotal] = useState<string>("")
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
   const [startDate, setStartDate]    = useState("")
   const [endDate, setEndDate]        = useState("")
@@ -29,10 +30,13 @@ export default function ReservationNewModal({
     const v = vehicles.find((v) => v.id === vid)
     setSelectedVehicle(v ?? null)
     if (v && sd && ed) {
-      const days = Math.max(1, Math.ceil((new Date(ed).getTime() - new Date(sd).getTime()) / 86400000))
-      setPreview({ days, total: days * Number(v.dailyRate ?? v.category.dailyRate) })
+      const days  = Math.max(1, Math.ceil((new Date(ed).getTime() - new Date(sd).getTime()) / 86400000))
+      const auto  = days * Number(v.dailyRate ?? v.category.dailyRate)
+      setPreview({ days, auto })
+      setCustomTotal(String(auto))
     } else {
       setPreview(null)
+      setCustomTotal("")
     }
   }
 
@@ -104,7 +108,7 @@ export default function ReservationNewModal({
           </div>
 
           {preview && (
-            <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 text-sm space-y-1">
+            <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 text-sm space-y-2">
               <div className="flex justify-between text-zinc-400">
                 <span>Duração</span><span className="text-white">{preview.days} dia(s)</span>
               </div>
@@ -114,11 +118,17 @@ export default function ReservationNewModal({
                   {selectedVehicle && new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(selectedVehicle.dailyRate ?? selectedVehicle.category.dailyRate))}
                 </span>
               </div>
-              <div className="flex justify-between font-bold border-t border-zinc-700 pt-2 mt-2">
-                <span className="text-zinc-300">Total</span>
-                <span className="text-[#d4a017] text-base">
-                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(preview.total)}
-                </span>
+              <div className="flex items-center justify-between font-bold border-t border-zinc-700 pt-2 mt-1 gap-3">
+                <span className="text-zinc-300 shrink-0">Total (R$)</span>
+                <input
+                  type="number"
+                  name="customTotal"
+                  min="0"
+                  step="0.01"
+                  value={customTotal}
+                  onChange={e => setCustomTotal(e.target.value)}
+                  className="w-36 bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1.5 text-[#d4a017] font-bold text-right text-base focus:outline-none focus:border-amber-500"
+                />
               </div>
             </div>
           )}
