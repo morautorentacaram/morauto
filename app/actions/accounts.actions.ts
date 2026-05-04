@@ -137,5 +137,4 @@ export async function syncOverdueAccounts() {
     where: { status: "PENDING", dueDate: { lt: now } },
     data: { status: "OVERDUE" },
   })
-  revalidatePath("/admin/contas")
 }
