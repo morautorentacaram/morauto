@@ -2,7 +2,9 @@
 
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { AccountStatus, AccountType } from "@prisma/client"
+
+type AccountType = "PAYABLE" | "RECEIVABLE"
+type AccountStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED"
 
 export async function getAccounts(filters?: {
   type?: AccountType
