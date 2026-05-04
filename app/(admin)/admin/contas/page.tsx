@@ -1,6 +1,6 @@
 import { getAccounts, getAccountsSummary, syncOverdueAccounts } from "@/app/actions/accounts.actions"
 import { formatCurrency } from "@/lib/utils"
-import { TrendingDown, TrendingUp, Wallet, Scale, Plus } from "lucide-react"
+import { TrendingDown, TrendingUp, Wallet, Scale, AlertCircle } from "lucide-react"
 import AccountForm from "@/components/admin/AccountForm"
 import AccountsManager from "@/components/admin/AccountsManager"
 
@@ -8,9 +8,29 @@ export const metadata = {
   title: "Contas a Pagar e Receber - Morauto Admin",
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function ContasPage() {
-  await syncOverdueAccounts()
-  const [accounts, summary] = await Promise.all([getAccounts(), getAccountsSummary()])
+  let accounts: Awaited<ReturnType<typeof getAccounts>> = []
+  let summary = {
+    totalReceivable: 0,
+    totalPayable: 0,
+    paidReceivable: 0,
+    paidPayable: 0,
+    balance: 0,
+  }
+  let loadError: string | null = null
+
+  try {
+    await syncOverdueAccounts()
+    const [a, s] = await Promise.all([getAccounts(), getAccountsSummary()])
+    accounts = a
+    summary = s
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    loadError = msg
+    console.error("[contas] failed to load:", e)
+  }
 
   const kpis = [
     {
@@ -52,6 +72,19 @@ export default async function ContasPage() {
           Controle de despesas, receitas avulsas e fluxo de caixa operacional.
         </p>
       </div>
+
+      {loadError && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="min-w-0 flex-1">
+            <p className="text-red-300 text-sm font-semibold">Falha ao carregar dados</p>
+            <pre className="text-red-200/80 text-xs mt-1 whitespace-pre-wrap break-words">{loadError}</pre>
+            <p className="text-red-300/70 text-xs mt-2">
+              Provavelmente a tabela <code>AccountEntry</code> ainda não existe no banco. Execute <code>npx prisma db push</code>.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
