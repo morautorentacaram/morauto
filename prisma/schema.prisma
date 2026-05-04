@@ -58,6 +58,18 @@ enum MaintenanceStatus {
   CANCELLED
 }
 
+enum AccountType {
+  PAYABLE
+  RECEIVABLE
+}
+
+enum AccountStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -304,6 +316,20 @@ model Maintenance {
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+}
+
+model AccountEntry {
+  id          String        @id @default(cuid())
+  type        AccountType
+  category    String
+  description String
+  amount      Decimal       @db.Decimal(10, 2)
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      AccountStatus @default(PENDING)
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
 // ── Vendas de Veículos ─────────────────────────────────────────────────────────

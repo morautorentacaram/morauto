@@ -7,7 +7,7 @@ import Image from "next/image"
 import {
   LayoutDashboard, CarFront, Users, FileText, LogOut, Settings,
   Wrench, AlertTriangle, DollarSign, ClipboardCheck, Building2,
-  BarChart3, CalendarClock, Tag, Menu, X,
+  BarChart3, CalendarClock, Tag, Menu, X, BookOpen,
 } from "lucide-react"
 import { signOutAction } from "@/app/actions/auth.actions"
 
@@ -53,6 +53,9 @@ export default function AdminSidebar({ role, userName }: Props) {
         <NavItem href="/admin/clientes" icon={<Users size={16} />} label="Clientes" onClose={onClose} />
         {(role === "ADMIN" || role === "MANAGER" || role === "FINANCIAL") && (
           <NavItem href="/admin/financeiro" icon={<DollarSign size={16} />} label="Financeiro" onClose={onClose} />
+        )}
+        {(role === "ADMIN" || role === "MANAGER" || role === "FINANCIAL") && (
+          <NavItem href="/admin/contas" icon={<BookOpen size={16} />} label="Contas a Pagar/Receber" onClose={onClose} />
         )}
 
         <p className="text-zinc-600 text-xs font-bold uppercase tracking-widest px-3 py-2 mt-4">Vendas</p>
