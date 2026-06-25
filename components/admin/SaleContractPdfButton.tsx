@@ -88,7 +88,7 @@ async function gerarAVista(contract: any) {
   const entryMethod2     = payInfo.entryMethod2     ?? "PIX"
   const installmentCount = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
   const installmentAmount= payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
-  const deliveryDate     = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
+  const deliveryDate     = payInfo.deliveryDate ? fmtD(parseLocalDate(payInfo.deliveryDate)) : fmtD(contract.createdAt)
   const vehicleKm        = payInfo.vehicleKm         ?? String(vehicle.km ?? 0)
   const rg               = payInfo.rg                ?? "___________"
   const observations     = payInfo.observations      ?? ""
@@ -395,7 +395,7 @@ async function gerarReservaDominio(contract: any) {
   const installmentCount  = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
   const installmentAmount = payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
   const installmentStart  = payInfo.installmentStart  ?? null
-  const deliveryDate      = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
+  const deliveryDate      = payInfo.deliveryDate ? fmtD(parseLocalDate(payInfo.deliveryDate)) : fmtD(contract.createdAt)
   const vehicleKm         = payInfo.vehicleKm         ?? String(vehicle.km ?? 0)
   const observationsD     = payInfo.observations      ?? ""
   const installmentsD: Array<{number: number; value: string; date: string}> =
