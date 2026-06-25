@@ -27,20 +27,28 @@ function parseLocalDate(s: string | Date): Date {
 }
 
 function valorPorExtenso(valor: number): string {
-  const un  = ["","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"]
-  const dz  = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"]
-  const ct  = ["","cem","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"]
-  const mil = ["","mil","dois mil","três mil","quatro mil","cinco mil","seis mil","sete mil","oito mil","nove mil"]
+  const un = ["","um","dois","três","quatro","cinco","seis","sete","oito","nove",
+              "dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"]
+  const dz = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"]
+  const ct = ["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"]
+
   const n = Math.round(valor)
   if (n === 0) return "zero"
+
+  function group(v: number): string {
+    if (v === 0) return ""
+    if (v < 20) return un[v]
+    if (v < 100) { const d = Math.floor(v / 10), u = v % 10; return dz[d] + (u > 0 ? " e " + un[u] : "") }
+    const c = Math.floor(v / 100), rem = v % 100
+    const prefix = v === 100 ? "cem" : ct[c]
+    return prefix + (rem > 0 ? " e " + group(rem) : "")
+  }
+
+  if (n < 1000) return group(n)
   const m = Math.floor(n / 1000), r = n % 1000
-  const c = Math.floor(r / 100), rem = r % 100
-  const d = Math.floor(rem / 10), u = rem % 10
-  let t = ""
-  if (m > 0) t += (m < 10 ? mil[m] : `${m} mil`) + (r > 0 ? " e " : "")
-  if (c > 0) t += ct[c] + (rem > 0 ? " e " : "")
-  if (rem > 0) t += rem < 20 ? un[rem] : dz[d] + (u > 0 ? " e " + un[u] : "")
-  return t.trim()
+  const milStr = m === 1 ? "mil" : group(m) + " mil"
+  if (r === 0) return milStr
+  return milStr + " e " + group(r)
 }
 
 async function loadLogo(): Promise<string> {
@@ -76,6 +84,8 @@ async function gerarAVista(contract: any) {
 
   const entryAmount      = payInfo.entryAmount      ? Number(payInfo.entryAmount)      : null
   const entryMethod      = payInfo.entryMethod      ?? contract.paymentMethod ?? "transferência bancária"
+  const entryAmount2     = payInfo.entryAmount2     ? Number(payInfo.entryAmount2)     : null
+  const entryMethod2     = payInfo.entryMethod2     ?? "PIX"
   const installmentCount = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
   const installmentAmount= payInfo.installmentAmount ? Number(payInfo.installmentAmount): null
   const deliveryDate     = payInfo.deliveryDate      ?? fmtD(contract.createdAt)
@@ -232,6 +242,9 @@ async function gerarAVista(contract: any) {
   let pagTxt = `A venda será feita pelo preço e justo ${fmt(salePrice)} (${ext.toUpperCase()} REAIS), sendo que, por conta do valor estabelecido, o VENDEDOR recebe do COMPRADOR neste ato`
   if (entryAmount) {
     pagTxt += ` o valor de entrada ${fmt(entryAmount)} (${valorPorExtenso(entryAmount).toUpperCase()} REAIS) em ${entryMethod.toUpperCase()} PARA A CONTA DO VENDEDOR`
+    if (entryAmount2) {
+      pagTxt += `, e mais ${fmt(entryAmount2)} (${valorPorExtenso(entryAmount2).toUpperCase()} REAIS) em ${entryMethod2.toUpperCase()}`
+    }
   }
   if (tradeInVehicles.length > 0) {
     tradeInVehicles.forEach((tv) => {
@@ -375,6 +388,8 @@ async function gerarReservaDominio(contract: any) {
 
   const entryAmount       = payInfo.entryAmount      ? Number(payInfo.entryAmount)      : null
   const entryMethodD      = payInfo.entryMethod      ?? contract.paymentMethod ?? "transferência bancária"
+  const entryAmount2D     = payInfo.entryAmount2     ? Number(payInfo.entryAmount2)     : null
+  const entryMethod2D     = payInfo.entryMethod2     ?? "PIX"
   const secondPayment     = payInfo.secondPayment     ? Number(payInfo.secondPayment)    : null
   const secondPayDate     = payInfo.secondPayDate     ?? null
   const installmentCount  = payInfo.installmentCount  ? Number(payInfo.installmentCount) : null
@@ -526,7 +541,11 @@ async function gerarReservaDominio(contract: any) {
   sectionBar("CLÁUSULA VII — DO VALOR")
   const valorExtenso = valorPorExtenso(salePrice)
   let pagamentoTexto = `A venda será feita pelo preço justo de ${fmt(salePrice)} (${valorExtenso} reais).`
-  if (entryAmount) pagamentoTexto += ` O VENDEDOR recebe do COMPRADOR como entrada o valor de ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais) em ${entryMethodD}.`
+  if (entryAmount) {
+    pagamentoTexto += ` O VENDEDOR recebe do COMPRADOR como entrada o valor de ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais) em ${entryMethodD}`
+    if (entryAmount2D) pagamentoTexto += `, e mais ${fmt(entryAmount2D)} (${valorPorExtenso(entryAmount2D)} reais) em ${entryMethod2D}`
+    pagamentoTexto += `.`
+  }
   if (tradeInVehiclesD.length > 0) {
     tradeInVehiclesD.forEach((tv) => {
       pagamentoTexto += ` E mais um veículo ${tv.brand} ${tv.model} Ano ${tv.year}, RENAVAM ${tv.renavam ?? "—"}, Placa ${tv.plate ?? "—"}, Chassi ${tv.chassi ?? "—"}.`
@@ -710,8 +729,10 @@ async function gerarDacao(contract: any) {
   let payInfo: Record<string, any> = {}
   try { payInfo = JSON.parse(contract.paymentDetails ?? "{}") } catch {}
 
-  const entryAmount   = payInfo.entryAmount ? Number(payInfo.entryAmount) : null
-  const entryMethod   = (payInfo.entryMethod ?? "PIX")
+  const entryAmount   = payInfo.entryAmount  ? Number(payInfo.entryAmount)  : null
+  const entryMethod   = payInfo.entryMethod  ?? "PIX"
+  const entryAmount2  = payInfo.entryAmount2 ? Number(payInfo.entryAmount2) : null
+  const entryMethod2  = payInfo.entryMethod2 ?? "PIX"
   const rg            = payInfo.rg ?? "___________"
   const interveniente = payInfo.interveniente ?? {}
   const intName       = interveniente.name ?? "_______________"
@@ -853,7 +874,9 @@ async function gerarDacao(contract: any) {
 
   // a) sinal
   if (entryAmount) {
-    para(`a) ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais), pagos a título de sinal neste ato, por meio de ${entryMethod} para a conta de titularidade da VENDEDORA;`)
+    let sinalTxt = `a) ${fmt(entryAmount)} (${valorPorExtenso(entryAmount)} reais), pagos a título de sinal neste ato, por meio de ${entryMethod} para a conta de titularidade da VENDEDORA`
+    if (entryAmount2) sinalTxt += `, e mais ${fmt(entryAmount2)} (${valorPorExtenso(entryAmount2)} reais) por meio de ${entryMethod2}`
+    para(sinalTxt + ";")
   }
 
   // b) dação (veículos entregues)

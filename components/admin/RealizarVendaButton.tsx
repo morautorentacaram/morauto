@@ -65,6 +65,9 @@ export default function RealizarVendaButton({
   const [paymentMethod, setPaymentMethod] = useState("PIX")
   const [deliveryDate, setDeliveryDate] = useState("")
   const [entryAmount, setEntryAmount] = useState("")
+  const [entryMethod, setEntryMethod] = useState("PIX")
+  const [entryAmount2, setEntryAmount2] = useState("")
+  const [entryMethod2, setEntryMethod2] = useState("Dinheiro")
   const [secondPayment, setSecondPayment] = useState("")
   const [secondPayDate, setSecondPayDate] = useState("")
   const [installmentCount, setInstallmentCount] = useState("")
@@ -89,6 +92,9 @@ export default function RealizarVendaButton({
     fd.set("paymentMethod", paymentMethod)
     if (deliveryDate)    fd.set("deliveryDate", deliveryDate)
     if (entryAmount)     fd.set("entryAmount", entryAmount)
+    if (entryAmount)     fd.set("entryMethod", entryMethod)
+    if (entryAmount2)    fd.set("entryAmount2", entryAmount2)
+    if (entryAmount2)    fd.set("entryMethod2", entryMethod2)
     if (secondPayment)   fd.set("secondPayment", secondPayment)
     if (secondPayDate)   fd.set("secondPayDate", secondPayDate)
     if (installmentCount)  fd.set("installmentCount", installmentCount)
@@ -220,6 +226,31 @@ export default function RealizarVendaButton({
                   <label className={labelCls}>Valor da Entrada (R$)</label>
                   <input type="number" step="0.01" value={entryAmount} onChange={(e) => setEntryAmount(e.target.value)} placeholder="0,00"
                     className={inputCls} />
+                </div>
+                <div className="space-y-1">
+                  <label className={labelCls}>Forma da Entrada</label>
+                  <select value={entryMethod} onChange={(e) => setEntryMethod(e.target.value)} className={inputCls}>
+                    <option value="PIX">PIX</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Transferência Bancária">Transferência Bancária</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className={labelCls}>2ª Entrada (R$) — opcional</label>
+                  <input type="number" step="0.01" value={entryAmount2} onChange={(e) => setEntryAmount2(e.target.value)} placeholder="0,00"
+                    className={inputCls} />
+                </div>
+                <div className="space-y-1">
+                  <label className={labelCls}>Forma da 2ª Entrada</label>
+                  <select value={entryMethod2} onChange={(e) => setEntryMethod2(e.target.value)} className={inputCls}>
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="PIX">PIX</option>
+                    <option value="Transferência Bancária">Transferência Bancária</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className={labelCls}>2º Pagamento (R$)</label>

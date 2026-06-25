@@ -27,6 +27,8 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
   const [address, setAddress]           = useState("")
   const [entryAmount, setEntryAmount]   = useState("")
   const [entryMethod, setEntryMethod]   = useState("PIX")
+  const [entryAmount2, setEntryAmount2] = useState("")
+  const [entryMethod2, setEntryMethod2] = useState("Dinheiro")
   const [deliveryDate, setDeliveryDate] = useState("")
   const [vehicleKm, setVehicleKm]       = useState("")
   const [observations, setObservations] = useState("")
@@ -57,6 +59,8 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
         setAddress(pay.address ?? c.lead?.address ?? "")
         setEntryAmount(pay.entryAmount ?? "")
         setEntryMethod(pay.entryMethod ?? "PIX")
+        setEntryAmount2(pay.entryAmount2 ?? "")
+        setEntryMethod2(pay.entryMethod2 ?? "Dinheiro")
         setDeliveryDate(pay.deliveryDate ?? "")
         setVehicleKm(pay.vehicleKm ?? String(c.vehicle?.km ?? ""))
         setObservations(pay.observations ?? "")
@@ -108,6 +112,8 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
     fd.append("address", address)
     fd.append("entryAmount", entryAmount)
     fd.append("entryMethod", entryMethod)
+    fd.append("entryAmount2", entryAmount2)
+    fd.append("entryMethod2", entryMethod2)
     fd.append("deliveryDate", deliveryDate)
     fd.append("vehicleKm", vehicleKm)
     fd.append("observations", observations)
@@ -168,8 +174,19 @@ export default function EditSaleContractPage({ params }: { params: Promise<{ id:
               <label className={lbl}>Forma da Entrada</label>
               <select className={inp} value={entryMethod} onChange={e => setEntryMethod(e.target.value)}>
                 <option value="PIX">PIX</option>
-                <option value="Transferência Bancária">Transferência Bancária</option>
                 <option value="Dinheiro">Dinheiro</option>
+                <option value="Transferência Bancária">Transferência Bancária</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+              </select>
+            </div>
+            <div><label className={lbl}>2ª Entrada (R$) — opcional</label><input type="number" className={inp} value={entryAmount2} onChange={e => setEntryAmount2(e.target.value)} step="0.01" placeholder="0,00" /></div>
+            <div>
+              <label className={lbl}>Forma da 2ª Entrada</label>
+              <select className={inp} value={entryMethod2} onChange={e => setEntryMethod2(e.target.value)}>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência Bancária">Transferência Bancária</option>
                 <option value="Cartão de Crédito">Cartão de Crédito</option>
                 <option value="Cartão de Débito">Cartão de Débito</option>
               </select>

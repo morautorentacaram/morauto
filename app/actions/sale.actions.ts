@@ -350,7 +350,7 @@ export async function updateSaleContract(contractId: string, formData: FormData)
 
     // Rebuild paymentDetails JSON
     const payDetails: Record<string, any> = {}
-    const simpleFields = ["rg","address","entryAmount","entryMethod","deliveryDate","vehicleKm","observations","dacaoAmount","prazoQuitacao","multaPercent","garantiaPrazo"]
+    const simpleFields = ["rg","address","entryAmount","entryMethod","entryAmount2","entryMethod2","deliveryDate","vehicleKm","observations","dacaoAmount","prazoQuitacao","multaPercent","garantiaPrazo"]
     simpleFields.forEach((f) => {
       const v = formData.get(f) as string
       if (v) payDetails[f] = v
